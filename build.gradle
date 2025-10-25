@@ -27,20 +27,26 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-rest'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     implementation("commons-codec:commons-codec:1.19.0")
-    // https://mvnrepository.com/artifact/org.web3j/core
     implementation("org.web3j:core:5.0.0")
-//    implementation 'org.bitcoinj:bitcoinj-core:0.17.2'
     implementation("org.bitcoinj:bitcoinj-core:0.17")
 
     implementation 'com.mmorrell:solanaj:1.16.3'
     implementation("com.mmorrell:solanaj-programs:1.33.6")
+
+    // 添加 JPA 依赖
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'com.h2database:h2'
+
+    // 添加 BIP39 助记词生成库
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.78.1'
 
 }
 

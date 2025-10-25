@@ -1,0 +1,25 @@
+spring:
+  docker:
+    compose:
+      enabled: false
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    driver-class-name: org.h2.Driver
+    #H2内存数据库
+    #    url: jdbc:h2:mem:moon
+    #本地持久化数据库
+    url: jdbc:h2:./data/web3-demo-db
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      #初次启动时使用 create-drop，会自动创建表结构
+      #      ddl-auto: create-drop
+      # DB 运行后改为 update 模式(只更新表结构不清数据)
+      ddl-auto: update
+
+web3j:
+  # 本地 Ganache 或 Infura/Alchemy 节点
+  #  client-address: http://127.0.0.1:8545
+  client-address: http://127.0.0.1:7545

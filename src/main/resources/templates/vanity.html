@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>靓号地址生成 - 钱包管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .address-result {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .loading {
+            display: none;
+        }
+        .result-section {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">钱包管理系统</a>
+            <div class="navbar-nav">
+                <a class="nav-link" href="/">账号管理</a>
+                <a class="nav-link active" href="/vanity">靓号生成</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <h2>靓号地址生成</h2>
+                <p class="text-muted">生成符合特定规则的钱包地址</p>
+
+                <!-- 生成配置 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">生成配置</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="vanityForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="pattern" class="form-label">靓号规则</label>
+                                        <input type="text" class="form-control" id="pattern" placeholder="例如: 1234, 888, abc" required>
+                                        <div class="form-text">输入您想要的靓号规则，支持数字和字母</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="coinType" class="form-label">币种</label>
+                                        <select class="form-select" id="coinType">
+                                            <option value="BTC">Bitcoin (BTC)</option>
+                                            <option value="ETH">Ethereum (ETH)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="maxResults" class="form-label">生成数量</label>
+                                        <input type="number" class="form-control" id="maxResults" min="1" max="50" value="10">
+                                        <div class="form-text">最多50个</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-lightning-charge"></i> 生成靓号地址
+                                </button>
+                                <button type="button" class="btn btn-success" id="downloadBtn" disabled>
+                                    <i class="bi bi-download"></i> 下载结果
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="clearResults()">
+                                    <i class="bi bi-trash"></i> 清空结果
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 加载状态 -->
+                <div id="loading" class="loading text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>正在生成靓号地址，请稍候...</p>
+                    <div class="alert alert-info">
+                        <strong>提示：</strong>靓号地址生成需要一定时间，请耐心等待。规则越复杂，生成时间越长。
+                    </div>
+                </div>
+
+                <!-- 结果显示 -->
+                <div id="resultSection" style="display: none;">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">生成结果</h5>
+                            <span class="badge bg-primary" id="resultCount">0</span>
+                        </div>
+                        <div class="card-body result-section" id="resultList">
+                            <!-- 结果将在这里显示 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentResults = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('vanityForm');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await generateVanityAddresses();
+            });
+
+            downloadBtn.addEventListener('click', downloadResults);
+        });
+
+        // 生成靓号地址
+        async function generateVanityAddresses() {
+            const loading = document.getElementById('loading');
+            const resultSection = document.getElementById('resultSection');
+            const pattern = document.getElementById('pattern').value.trim();
+            const coinType = document.getElementById('coinType').value;
+            const maxResults = parseInt(document.getElementById('maxResults').value);
+
+            if (!pattern) {
+                showError('请输入靓号规则');
+                return;
+            }
+
+            loading.style.display = 'block';
+            resultSection.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/vanity/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        pattern: pattern,
+                        coinType: coinType,
+                        maxResults: maxResults
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    currentResults = result.data;
+                    displayResults(currentResults);
+                    showSuccess(`成功生成 ${currentResults.length} 个靓号地址`);
+                } else {
+                    showError('生成失败: ' + result.message);
+                }
+            } catch (error) {
+                showError('网络错误: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // 显示结果
+        function displayResults(results) {
+            const resultSection = document.getElementById('resultSection');
+            const resultList = document.getElementById('resultList');
+            const resultCount = document.getElementById('resultCount');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            if (results.length === 0) {
+                resultList.innerHTML = '<div class="alert alert-info">未找到符合条件的靓号地址</div>';
+                downloadBtn.disabled = true;
+                resultSection.style.display = 'block';
+                return;
+            }
+
+            let html = '';
+            results.forEach((result, index) => {
+                html += `
+                    <div class="address-result">
+                        <div class="row">
+                            <div class="col-md-1">
+                                <strong>#${index + 1}</strong>
+                            </div>
+                            <div class="col-md-11">
+                                <div class="mb-2">
+                                    <label class="form-label small text-muted">地址</label>
+                                    <div class="input-group">
+                                        <code class="form-control">${result.address}</code>
+                                        <button class="btn btn-outline-primary btn-sm" onclick="copyToClipboard('${result.address}')">
+                                            <i class="bi bi-clipboard"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small text-muted">私钥</label>
+                                    <div class="input-group">
+                                        <code class="form-control">${result.privateKey}</code>
+                                        <button class="btn btn-outline-primary btn-sm" onclick="copyToClipboard('${result.privateKey}')">
+                                            <i class="bi bi-clipboard"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-3">
+                                    <small class="text-muted"><strong>币种:</strong> ${result.coinType}</small>
+                                    <small class="text-muted"><strong>匹配规则:</strong> ${result.pattern}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            resultList.innerHTML = html;
+            resultCount.textContent = results.length;
+            downloadBtn.disabled = false;
+            resultSection.style.display = 'block';
+        }
+
+        // 下载结果
+        async function downloadResults() {
+            if (currentResults.length === 0) {
+                showError('没有可下载的结果');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/vanity/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(currentResults)
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = response.headers.get('Content-Disposition').split('filename=')[1] || 'vanity_addresses.txt';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    showSuccess('文件下载成功');
+                } else {
+                    showError('下载失败');
+                }
+            } catch (error) {
+                showError('下载失败: ' + error.message);
+            }
+        }
+
+        // 清空结果
+        function clearResults() {
+            currentResults = [];
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('downloadBtn').disabled = true;
+            showSuccess('结果已清空');
+        }
+
+        // 复制到剪贴板
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                showSuccess('已复制到剪贴板');
+            } catch (error) {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showSuccess('已复制到剪贴板');
+            }
+        }
+
+        // 显示成功消息
+        function showSuccess(message) {
+            const toast = createToast('success', message);
+            document.body.appendChild(toast);
+        }
+
+        // 显示错误消息
+        function showError(message) {
+            const toast = createToast('danger', message);
+            document.body.appendChild(toast);
+        }
+
+        // 创建Toast通知
+        function createToast(type, message) {
+            const toastHtml = `
+                <div class="toast align-items-center text-white bg-${type} border-0" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `;
+
+            const toastElement = document.createElement('div');
+            toastElement.innerHTML = toastHtml;
+            const toast = toastElement.firstElementChild;
+
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+
+            setTimeout(() => {
+                if (document.body.contains(toast)) {
+                    document.body.removeChild(toast);
+                }
+            }, 3000);
+
+            return toast;
+        }
+    </script>
+</body>
+</html>
