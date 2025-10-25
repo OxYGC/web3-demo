@@ -1,0 +1,49 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.7'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com'
+version = '0.0.1-SNAPSHOT'
+description = 'web3-demo'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-rest'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    implementation("commons-codec:commons-codec:1.19.0")
+    // https://mvnrepository.com/artifact/org.web3j/core
+    implementation("org.web3j:core:5.0.0")
+//    implementation 'org.bitcoinj:bitcoinj-core:0.17.2'
+    implementation("org.bitcoinj:bitcoinj-core:0.17")
+
+    implementation 'com.mmorrell:solanaj:1.16.3'
+    implementation("com.mmorrell:solanaj-programs:1.33.6")
+
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
