@@ -3,23 +3,368 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>靓号地址生成 - 钱包管理系统</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <title>🎨 靓号地址生成器 - Web3 Wallet System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .address-result {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            padding: 15px;
-            margin-bottom: 10px;
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --warning-gradient: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            --dark-bg: #0f0f23;
+            --card-bg: #1a1a2e;
+            --border-color: #16213e;
+            --text-primary: #e94560;
+            --text-secondary: #a0a3bd;
+            --accent-color: #00d4ff;
         }
+
+        body {
+            background: var(--dark-bg);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: var(--primary-gradient) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: linear-gradient(45deg, #fff, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-section {
+            padding: 2rem 0;
+            background: radial-gradient(ellipse at center, rgba(240, 147, 251, 0.1) 0%, transparent 70%);
+        }
+
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--secondary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .hero-subtitle {
+            color: var(--text-secondary);
+            text-align: center;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 10px 40px rgba(240, 147, 251, 0.2);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.1), rgba(245, 87, 108, 0.1));
+            border-bottom: 1px solid var(--border-color);
+            border-radius: 16px 16px 0 0 !important;
+        }
+
+        .form-control, .form-select {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: #ffffff;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.25rem rgba(0, 212, 255, 0.25);
+            color: #ffffff;
+        }
+
+        .form-control::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .btn-primary {
+            background: var(--secondary-gradient);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(240, 147, 251, 0.6);
+        }
+
+        .btn-success {
+            background: var(--success-gradient);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.6);
+        }
+
+        .address-result {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .address-result:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent-color);
+            transform: translateX(5px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.2);
+        }
+
         .loading {
             display: none;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 4rem;
+            text-align: center;
         }
+
         .result-section {
-            max-height: 500px;
+            max-height: 600px;
             overflow-y: auto;
+        }
+
+        .spinner-border {
+            color: var(--accent-color);
+            width: 3rem;
+            height: 3rem;
+        }
+
+        code {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--accent-color);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            word-break: break-all;
+        }
+
+        .badge {
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .match-type-selector {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-check-input {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: var(--border-color);
+        }
+
+        .form-check-input:checked {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .form-check-label {
+            color: #ffffff !important;
+        }
+
+        .form-label {
+            color: #ffffff !important;
+            font-weight: 500;
+        }
+
+        .form-text {
+            color: var(--text-secondary) !important;
+            font-size: 0.85rem;
+        }
+
+        .stats-row {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        .match-type-info {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 1rem;
+            height: 100%;
+            text-align: center;
+        }
+
+        .info-card strong {
+            color: var(--accent-color);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-card p {
+            color: var(--text-secondary) !important;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-card code {
+            font-size: 0.8rem;
+            background: rgba(0, 212, 255, 0.15);
+        }
+
+        .text-muted {
+            color: var(--text-secondary) !important;
+        }
+
+        .small, small {
+            color: var(--text-secondary) !important;
+        }
+
+        label {
+            color: #ffffff !important;
+        }
+
+        .card-title {
+            color: #ffffff !important;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: #ffffff !important;
+        }
+
+        p {
+            color: #ffffff !important;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .generating {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .generation-type-selector {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-check {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .form-check:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--accent-color);
+        }
+
+        .form-check-input:checked + .form-check-label {
+            color: var(--accent-color) !important;
+        }
+
+        .form-check-input {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: var(--border-color);
+        }
+
+        .form-check-input:checked {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .validation-success {
+            color: #28a745 !important;
+            background: rgba(40, 167, 69, 0.1);
+            border: 1px solid #28a745;
+            border-radius: 8px;
+            padding: 8px 12px;
+        }
+
+        .validation-error {
+            color: #dc3545 !important;
+            background: rgba(220, 53, 69, 0.1);
+            border: 1px solid #dc3545;
+            border-radius: 8px;
+            padding: 8px 12px;
+        }
+
+        textarea.form-control {
+            min-height: 80px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        #accountSection, #mnemonicSection {
+            transition: all 0.3s ease;
         }
     </style>
 </head>
@@ -47,12 +392,73 @@
                     </div>
                     <div class="card-body">
                         <form id="vanityForm">
-                            <div class="row">
+                            <!-- 生成方式选择 -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <label class="form-label">🔑 生成方式</label>
+                                    <div class="generation-type-selector">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="generationType" id="useAccount" value="account" checked>
+                                                    <label class="form-check-label" for="useAccount">
+                                                        <strong>使用已有账号</strong>
+                                                        <p class="small mb-0">从账号管理中选择已创建的账号</p>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="generationType" id="useMnemonic" value="mnemonic">
+                                                    <label class="form-check-label" for="useMnemonic">
+                                                        <strong>使用助记词</strong>
+                                                        <p class="small mb-0">输入12-24个单词的助记词</p>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 账号选择区域 -->
+                            <div class="row mb-3" id="accountSection">
                                 <div class="col-md-6">
+                                    <label for="accountSelect" class="form-label">选择账号</label>
+                                    <select class="form-select" id="accountSelect" required>
+                                        <option value="">请选择账号...</option>
+                                    </select>
+                                    <div class="form-text">选择要用于生成靓号地址的账号</div>
+                                </div>
+                            </div>
+
+                            <!-- 助记词输入区域 -->
+                            <div class="row mb-3" id="mnemonicSection" style="display: none;">
+                                <div class="col-md-8">
+                                    <label for="mnemonicInput" class="form-label">输入助记词</label>
+                                    <textarea class="form-control" id="mnemonicInput" rows="3" placeholder="输入12-24个单词的助记词，单词之间用空格分隔"></textarea>
+                                    <div class="form-text">请输入有效的BIP39助记词</div>
+                                    <div id="mnemonicValidation" class="mt-2"></div>
+                                </div>
+                            </div>
+
+                            <!-- 生成配置 -->
+                            <div class="row">
+                                <div class="col-md-3">
                                     <div class="mb-3">
                                         <label for="pattern" class="form-label">靓号规则</label>
                                         <input type="text" class="form-control" id="pattern" placeholder="例如: 1234, 888, abc" required>
-                                        <div class="form-text">输入您想要的靓号规则，支持数字和字母</div>
+                                        <div class="form-text">输入您想要的靓号规则</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="matchType" class="form-label">匹配类型</label>
+                                        <select class="form-select" id="matchType">
+                                            <option value="CONTAINS">包含匹配</option>
+                                            <option value="PREFIX">前缀匹配</option>
+                                            <option value="SUFFIX">后缀匹配</option>
+                                        </select>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
@@ -67,8 +473,35 @@
                                 <div class="col-md-3">
                                     <div class="mb-3">
                                         <label for="maxResults" class="form-label">生成数量</label>
-                                        <input type="number" class="form-control" id="maxResults" min="1" max="50" value="10">
-                                        <div class="form-text">最多50个</div>
+                                        <input type="number" class="form-control" id="maxResults" min="1" max="20" value="1">
+                                        <div class="form-text">默认1个，最多20个</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 匹配类型说明 -->
+                            <div class="match-type-info mb-3">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="info-card">
+                                            <strong>🎯 包含匹配</strong>
+                                            <p>地址中任意位置包含指定字符串</p>
+                                            <code>例: "888" → 1a888bc2d</code>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="info-card">
+                                            <strong>🚀 前缀匹配</strong>
+                                            <p>地址以指定字符串开头</p>
+                                            <code>例: "abc" → abcd1234</code>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="info-card">
+                                            <strong>🎪 后缀匹配</strong>
+                                            <p>地址以指定字符串结尾</p>
+                                            <code>例: "999" → 1a2b3999</code>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -118,6 +551,68 @@
     <script>
         let currentResults = [];
 
+        // 加载历史靓号地址
+        async function loadHistoryAddresses() {
+            try {
+                const response = await fetch('/api/vanity/list');
+                const result = await response.json();
+
+                if (result.success && result.data.length > 0) {
+                    displayHistoryAddresses(result.data);
+                }
+            } catch (error) {
+                console.error('加载历史靓号地址失败:', error);
+            }
+        }
+
+        // 显示历史地址
+        function displayHistoryAddresses(addresses) {
+            // 在结果区域后添加历史记录区域
+            const container = document.querySelector('.container');
+            const historySection = document.createElement('div');
+            historySection.innerHTML = `
+                <div class="card mt-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-clock-history"></i> 历史生成记录</h5>
+                        <span class="badge bg-secondary">${addresses.length}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            ${addresses.slice(0, 6).map((addr, index) => `
+                                <div class="col-md-6 mb-3">
+                                    <div class="address-result">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <strong>${addr.coinType}</strong>
+                                            <small class="text-muted">${addr.matchType}</small>
+                                        </div>
+                                        <div class="mb-2">
+                                            <code class="d-block">${addr.address}</code>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">规则: ${addr.pattern}</small>
+                                            <button class="btn btn-sm copy-btn" onclick="copyToClipboard('${addr.address}')">
+                                                <i class="bi bi-clipboard"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        ${addresses.length > 6 ? `
+                            <div class="text-center mt-3">
+                                <button class="btn btn-outline-primary" onclick="showAllHistory()">
+                                    查看全部 ${addresses.length} 个记录
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(historySection);
+        }
+
+        // 页面加载时初始化
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('vanityForm');
             const downloadBtn = document.getElementById('downloadBtn');
@@ -128,7 +623,98 @@
             });
 
             downloadBtn.addEventListener('click', downloadResults);
+
+            // 初始化生成方式切换
+            initGenerationTypeSwitch();
+
+            // 加载账号列表
+            loadAccountList();
+
+            // 加载历史靓号地址
+            loadHistoryAddresses();
         });
+
+        // 初始化生成方式切换
+        function initGenerationTypeSwitch() {
+            const useAccountRadio = document.getElementById('useAccount');
+            const useMnemonicRadio = document.getElementById('useMnemonic');
+            const accountSection = document.getElementById('accountSection');
+            const mnemonicSection = document.getElementById('mnemonicSection');
+            const mnemonicInput = document.getElementById('mnemonicInput');
+
+            useAccountRadio.addEventListener('change', function() {
+                if (this.checked) {
+                    accountSection.style.display = 'block';
+                    mnemonicSection.style.display = 'none';
+                    mnemonicInput.removeAttribute('required');
+                }
+            });
+
+            useMnemonicRadio.addEventListener('change', function() {
+                if (this.checked) {
+                    accountSection.style.display = 'none';
+                    mnemonicSection.style.display = 'block';
+                    mnemonicInput.setAttribute('required', 'required');
+                }
+            });
+
+            // 助记词实时验证
+            mnemonicInput.addEventListener('input', validateMnemonic);
+        }
+
+        // 加载账号列表
+        async function loadAccountList() {
+            try {
+                const response = await fetch('/api/accounts');
+                const result = await response.json();
+
+                if (result.success) {
+                    const accountSelect = document.getElementById('accountSelect');
+                    accountSelect.innerHTML = '<option value="">请选择账号...</option>';
+
+                    result.data.forEach(account => {
+                        const option = document.createElement('option');
+                        option.value = account.account;
+                        option.textContent = `${account.account} (${Object.keys(account.addresses).length} 种币)`;
+                        accountSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('加载账号列表失败:', error);
+            }
+        }
+
+        // 验证助记词
+        async function validateMnemonic() {
+            const mnemonicInput = document.getElementById('mnemonicInput');
+            const validationDiv = document.getElementById('mnemonicValidation');
+            const mnemonic = mnemonicInput.value.trim();
+
+            if (!mnemonic) {
+                validationDiv.innerHTML = '';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/wallet/validate-mnemonic', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(mnemonic)
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    validationDiv.innerHTML = '<div class="validation-success"><i class="bi bi-check-circle"></i> 助记词格式正确</div>';
+                } else {
+                    validationDiv.innerHTML = '<div class="validation-error"><i class="bi bi-x-circle"></i> 助记词格式不正确</div>';
+                }
+            } catch (error) {
+                validationDiv.innerHTML = '<div class="validation-error"><i class="bi bi-x-circle"></i> 验证失败，请检查网络连接</div>';
+            }
+        }
 
         // 生成靓号地址
         async function generateVanityAddresses() {
@@ -137,14 +723,60 @@
             const pattern = document.getElementById('pattern').value.trim();
             const coinType = document.getElementById('coinType').value;
             const maxResults = parseInt(document.getElementById('maxResults').value);
+            const matchType = document.getElementById('matchType').value;
 
             if (!pattern) {
                 showError('请输入靓号规则');
                 return;
             }
 
+            // 根据匹配类型给出提示
+            const matchTypeDesc = {
+                'CONTAINS': '包含匹配',
+                'PREFIX': '前缀匹配',
+                'SUFFIX': '后缀匹配'
+            };
+
             loading.style.display = 'block';
             resultSection.style.display = 'none';
+
+            // 更新加载提示
+            loading.innerHTML = `
+                <div class="spinner-border text-primary generating" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5 class="mt-3">🔥 正在生成靓号地址...</h5>
+                <p class="text-muted">模式: ${pattern} | 类型: ${matchTypeDesc[matchType]} | 币种: ${coinType}</p>
+                <div class="alert alert-info">
+                    <strong>💡 提示：</strong>靓号地址生成需要一定时间，请耐心等待。${matchType === 'PREFIX' ? '前缀' : matchType === 'SUFFIX' ? '后缀' : '包含'}匹配难度较${matchType === 'CONTAINS' ? '低' : '高'}。
+                </div>
+            `;
+
+            // 验证表单
+            const generationType = document.querySelector('input[name="generationType"]:checked').value;
+            let accountId = null;
+            let mnemonic = null;
+
+            if (generationType === 'account') {
+                accountId = document.getElementById('accountSelect').value;
+                if (!accountId) {
+                    showError('请选择账号');
+                    return;
+                }
+            } else if (generationType === 'mnemonic') {
+                mnemonic = document.getElementById('mnemonicInput').value.trim();
+                if (!mnemonic) {
+                    showError('请输入助记词');
+                    return;
+                }
+
+                // 再次验证助记词
+                const isValid = await validateMnemonicSync(mnemonic);
+                if (!isValid) {
+                    showError('助记词格式不正确，请检查后重试');
+                    return;
+                }
+            }
 
             try {
                 const response = await fetch('/api/vanity/generate', {
@@ -155,7 +787,11 @@
                     body: JSON.stringify({
                         pattern: pattern,
                         coinType: coinType,
-                        maxResults: maxResults
+                        maxResults: maxResults,
+                        matchType: matchType,
+                        generationType: generationType,
+                        accountId: accountId,
+                        mnemonic: mnemonic
                     })
                 });
 
@@ -302,6 +938,25 @@
         function showError(message) {
             const toast = createToast('danger', message);
             document.body.appendChild(toast);
+        }
+
+        // 同步验证助记词
+        async function validateMnemonicSync(mnemonic) {
+            try {
+                const response = await fetch('/api/wallet/validate-mnemonic', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(mnemonic)
+                });
+
+                const result = await response.json();
+                return result.success && result.data;
+            } catch (error) {
+                console.error('助记词验证失败:', error);
+                return false;
+            }
         }
 
         // 创建Toast通知

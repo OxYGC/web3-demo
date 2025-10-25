@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 
-
 @Data
 public class VanityAddressRequest {
 
@@ -16,6 +15,15 @@ public class VanityAddressRequest {
     private String coinType = "BTC"; // 默认BTC
 
     @Min(value = 1, message = "生成数量最少为1")
-    @Max(value = 50, message = "生成数量最多为50")
-    private Integer maxResults = 10; // 默认生成10个
+    @Max(value = 20, message = "生成数量最多为20")
+    private Integer maxResults = 1; // 默认生成1个
+
+    private String matchType = "CONTAINS"; // CONTAINS, PREFIX, SUFFIX
+    private String mnemonic;
+
+    String generationType;
+
+    String accountId;
+
+
 }

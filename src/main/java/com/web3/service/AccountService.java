@@ -25,9 +25,10 @@ public class AccountService {
      */
     @Transactional
     public Map<String, Object> createAccount(String type) {
-        // 生成账号ID和名称
+        // 生成账号ID
         String accountId = generateAccountId();
-        String accountName = "账号" + (accountRepository.count() + 1);
+        // 直接使用ID作为显示名称
+        String accountName = accountId;
 
         Account account = new Account();
         account.setAccountId(accountId);
