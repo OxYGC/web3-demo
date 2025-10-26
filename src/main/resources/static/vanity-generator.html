@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>靓号地址生成器 - Web3 钱包系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .form-section {
+            background: #f8f9ff;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .estimation-card {
+            background: linear-gradient(45deg, #ff9a9e, #fecfef);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .estimation-card h3 {
+            margin-bottom: 10px;
+        }
+
+        .estimation-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .estimation-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .task-list {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .task-item {
+            border-bottom: 1px solid #eee;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .task-item:last-child {
+            border-bottom: none;
+        }
+
+        .task-info {
+            display: grid;
+            gap: 10px;
+        }
+
+        .task-title {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .task-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e1e5e9;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .task-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-loading {
+            position: relative;
+            color: transparent;
+        }
+
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            margin-top: -8px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-running {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-paused {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-stopped {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .results-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .result-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .address-display {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #4facfe;
+            word-break: break-all;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .task-item {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .task-controls {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 靓号地址生成器</h1>
+            <p>使用虚拟线程技术，高效生成您的专属靓号地址</p>
+        </div>
+
+        <div class="content">
+            <!-- 生成配置表单 -->
+            <div class="form-section">
+                <h2>🔧 生成配置</h2>
+                <form id="configForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pattern">靓号模式</label>
+                            <input type="text" id="pattern" class="form-control" 
+                                   placeholder="输入期望的字符序列，如：888、abc等" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="matchType">匹配方式</label>
+                            <select id="matchType" class="form-control">
+                                <option value="CONTAINS">包含</option>
+                                <option value="PREFIX">前缀</option>
+                                <option value="SUFFIX">后缀</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="coinType">币种类型</label>
+                            <select id="coinType" class="form-control">
+                                <option value="BTC">Bitcoin (BTC)</option>
+                                <option value="ETH">Ethereum (ETH)</option>
+                                <option value="SOL">Solana (SOL)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="maxResults">生成数量</label>
+                            <input type="number" id="maxResults" class="form-control" 
+                                   min="1" max="20" value="1">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="generationType">生成方式</label>
+                            <select id="generationType" class="form-control">
+                                <option value="random">随机生成</option>
+                                <option value="mnemonic">使用助记词</option>
+                                <option value="account">关联账户</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="accountId">账户选择</label>
+                            <select id="accountId" class="form-control" style="display: none;">
+                                <option value="">选择账户</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="mnemonicGroup" style="display: none;">
+                        <label for="mnemonic">助记词</label>
+                        <textarea id="mnemonic" class="form-control" rows="3" 
+                                  placeholder="输入12或24个单词的助记词，用空格分隔"></textarea>
+                    </div>
+
+                    <button type="button" id="estimateBtn" class="btn btn-secondary">
+                        📊 预估生成时间
+                    </button>
+                </form>
+            </div>
+
+            <!-- 预估时间显示 -->
+            <div id="estimationCard" class="estimation-card" style="display: none;">
+                <h3>⏱️ 生成预估</h3>
+                <div class="estimation-info">
+                    <div class="estimation-item">
+                        <strong>预估时间</strong>
+                        <div id="estimatedTime">-</div>
+                    </div>
+                    <div class="estimation-item">
+                        <strong>难度等级</strong>
+                        <div id="difficulty">-</div>
+                    </div>
+                    <div class="estimation-item">
+                        <strong>模式长度</strong>
+                        <div id="patternLength">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 任务列表 -->
+            <div class="task-list">
+                <div style="padding: 20px; border-bottom: 1px solid #eee;">
+                    <h2>📋 生成任务</h2>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button type="button" id="createTaskBtn" class="btn btn-primary">
+                            🚀 创建任务
+                        </button>
+                        <button type="button" id="refreshTasksBtn" class="btn btn-secondary">
+                            🔄 刷新任务
+                        </button>
+                    </div>
+                </div>
+
+                <div id="tasksList">
+                    <div style="padding: 40px; text-align: center; color: #666;">
+                        暂无生成任务
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let activeTaskId = null;
+        let refreshInterval = null;
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAccounts();
+            setupEventListeners();
+            refreshTasks();
+        });
+
+        function setupEventListeners() {
+            // 生成方式切换
+            document.getElementById('generationType').addEventListener('change', function() {
+                const generationType = this.value;
+                const accountGroup = document.getElementById('accountId').parentElement;
+                const mnemonicGroup = document.getElementById('mnemonicGroup');
+
+                if (generationType === 'account') {
+                    accountGroup.style.display = 'block';
+                    mnemonicGroup.style.display = 'none';
+                } else if (generationType === 'mnemonic') {
+                    accountGroup.style.display = 'none';
+                    mnemonicGroup.style.display = 'block';
+                } else {
+                    accountGroup.style.display = 'none';
+                    mnemonicGroup.style.display = 'none';
+                }
+            });
+
+            // 预估时间按钮
+            document.getElementById('estimateBtn').addEventListener('click', estimateTime);
+
+            // 创建任务按钮
+            document.getElementById('createTaskBtn').addEventListener('click', createTask);
+
+            // 刷新任务按钮
+            document.getElementById('refreshTasksBtn').addEventListener('click', refreshTasks);
+        }
+
+        async function loadAccounts() {
+            try {
+                const response = await fetch('/api/account/list');
+                const result = await response.json();
+
+                if (result.success) {
+                    const accountSelect = document.getElementById('accountId');
+                    accountSelect.innerHTML = '<option value="">选择账户</option>';
+
+                    result.data.forEach(account => {
+                        const option = document.createElement('option');
+                        option.value = account.account;
+                        option.textContent = `${account.account_name} (${account.account})`;
+                        accountSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('加载账户列表失败:', error);
+            }
+        }
+
+        async function estimateTime() {
+            const pattern = document.getElementById('pattern').value;
+            const matchType = document.getElementById('matchType').value;
+            const maxResults = parseInt(document.getElementById('maxResults').value);
+
+            if (!pattern.trim()) {
+                alert('请输入靓号模式');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/vanity/estimate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        pattern: pattern,
+                        matchType: matchType,
+                        maxResults: maxResults
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    document.getElementById('estimatedTime').textContent = result.data.estimatedTimeText;
+                    document.getElementById('difficulty').textContent = result.data.difficulty;
+                    document.getElementById('patternLength').textContent = result.data.patternLength + ' 个字符';
+                    document.getElementById('estimationCard').style.display = 'block';
+                } else {
+                    alert('预估失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('预估时间失败:', error);
+                alert('预估失败: ' + error.message);
+            }
+        }
+
+        async function createTask() {
+            const form = document.getElementById('configForm');
+            const formData = new FormData(form);
+
+            const taskData = {
+                pattern: document.getElementById('pattern').value,
+                coinType: document.getElementById('coinType').value,
+                maxResults: parseInt(document.getElementById('maxResults').value),
+                matchType: document.getElementById('matchType').value,
+                generationType: document.getElementById('generationType').value,
+                accountId: document.getElementById('accountId').value,
+                mnemonic: document.getElementById('mnemonic').value
+            };
+
+            if (!taskData.pattern.trim()) {
+                alert('请输入靓号模式');
+                return;
+            }
+
+            const createBtn = document.getElementById('createTaskBtn');
+            createBtn.classList.add('btn-loading');
+            createBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/vanity/create-task', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(taskData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    activeTaskId = result.data;
+                    refreshTasks();
+                    alert('任务创建成功！');
+                } else {
+                    alert('创建任务失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('创建任务失败:', error);
+                alert('创建任务失败: ' + error.message);
+            } finally {
+                createBtn.classList.remove('btn-loading');
+                createBtn.disabled = false;
+            }
+        }
+
+        async function startTask(taskId) {
+            try {
+                const response = await fetch(`/api/vanity/start-task/${taskId}`, {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    startTaskRefresh();
+                    refreshTasks();
+                } else {
+                    alert('启动任务失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('启动任务失败:', error);
+                alert('启动任务失败: ' + error.message);
+            }
+        }
+
+        async function pauseTask(taskId) {
+            try {
+                const response = await fetch(`/api/vanity/pause-task/${taskId}`, {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    refreshTasks();
+                } else {
+                    alert('暂停任务失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('暂停任务失败:', error);
+                alert('暂停任务失败: ' + error.message);
+            }
+        }
+
+        async function resumeTask(taskId) {
+            try {
+                const response = await fetch(`/api/vanity/resume-task/${taskId}`, {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    startTaskRefresh();
+                    refreshTasks();
+                } else {
+                    alert('恢复任务失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('恢复任务失败:', error);
+                alert('恢复任务失败: ' + error.message);
+            }
+        }
+
+        async function stopTask(taskId) {
+            try {
+                const response = await fetch(`/api/vanity/stop-task/${taskId}`, {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    stopTaskRefresh();
+                    refreshTasks();
+                } else {
+                    alert('停止任务失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('停止任务失败:', error);
+                alert('停止任务失败: ' + error.message);
+            }
+        }
+
+        async function refreshTasks() {
+            try {
+                const response = await fetch('/api/vanity/active-tasks');
+                const result = await response.json();
+
+                if (result.success) {
+                    renderTasks(result.data);
+                } else {
+                    console.error('获取任务列表失败:', result.message);
+                }
+            } catch (error) {
+                console.error('获取任务列表失败:', error);
+            }
+        }
+
+        function renderTasks(tasks) {
+            const tasksList = document.getElementById('tasksList');
+
+            if (Object.keys(tasks).length === 0) {
+                tasksList.innerHTML = '<div style="padding: 40px; text-align: center; color: #666;">暂无生成任务</div>';
+                return;
+            }
+
+            tasksList.innerHTML = '';
+
+            Object.values(tasks).forEach(task => {
+                const taskItem = createTaskItem(task);
+                tasksList.appendChild(taskItem);
+            });
+        }
+
+        function createTaskItem(task) {
+            const taskItem = document.createElement('div');
+            taskItem.className = 'task-item';
+
+            const statusClass = `status-${task.status.toLowerCase()}`;
+            const statusText = getStatusText(task.status);
+
+            const speed = task.currentSpeed ? `${Math.round(task.currentSpeed)} 次/秒` : '-';
+            const runningTime = task.runningTimeMs ? formatTime(task.runningTimeMs) : '-';
+
+            taskItem.innerHTML = `
+                <div class="task-info">
+                    <div class="task-title">
+                        ${task.pattern} (${task.coinType}) - ${task.maxResults} 个地址
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="task-details">
+                        <div>预估: ${formatTime(task.estimatedTimeMs)}</div>
+                        <div>已用: ${runningTime}</div>
+                        <div>速度: ${speed}</div>
+                        <div>找到: ${task.foundCount.value}/${task.maxResults}</div>
+                        <div>尝试: ${task.attemptCount.value} 次</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${task.progress}%"></div>
+                    </div>
+                </div>
+                <div class="task-controls">
+                    ${createTaskControls(task)}
+                </div>
+            `;
+
+            return taskItem;
+        }
+
+        function createTaskControls(task) {
+            const taskId = task.taskId;
+
+            switch (task.status) {
+                case 'PENDING':
+                    return `<button class="btn btn-success" onclick="startTask('${taskId}')">🚀 开始</button>`;
+                case 'RUNNING':
+                    return `<button class="btn btn-warning" onclick="pauseTask('${taskId}')">⏸️ 暂停</button>
+                            <button class="btn btn-danger" onclick="stopTask('${taskId}')">⏹️ 停止</button>`;
+                case 'PAUSED':
+                    return `<button class="btn btn-success" onclick="resumeTask('${taskId}')">▶️ 继续</button>
+                            <button class="btn btn-danger" onclick="stopTask('${taskId}')">⏹️ 停止</button>`;
+                case 'COMPLETED':
+                    return `<button class="btn btn-primary" onclick="showResults('${taskId}')">📋 查看结果</button>`;
+                case 'STOPPED':
+                    return `<span class="status-badge status-stopped">已停止</span>`;
+                default:
+                    return '';
+            }
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                'PENDING': '待开始',
+                'RUNNING': '运行中',
+                'PAUSED': '已暂停',
+                'COMPLETED': '已完成',
+                'STOPPED': '已停止',
+                'ERROR': '出错'
+            };
+            return statusMap[status] || status;
+        }
+
+        function formatTime(milliseconds) {
+            if (milliseconds < 1000) {
+                return '< 1 秒';
+            } else if (milliseconds < 60 * 1000) {
+                return Math.round(milliseconds / 1000) + ' 秒';
+            } else if (milliseconds < 60 * 60 * 1000) {
+                return Math.round(milliseconds / (60 * 1000)) + ' 分钟';
+            } else {
+                return Math.round(milliseconds / (60 * 60 * 1000)) + ' 小时';
+            }
+        }
+
+        function startTaskRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+            refreshInterval = setInterval(refreshTasks, 2000); // 每2秒刷新一次
+        }
+
+        function stopTaskRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+        }
+
+        function showResults(taskId) {
+            // 这里可以实现显示任务结果的逻辑
+            window.open(`/vanity-results.html?taskId=${taskId}`, '_blank');
+        }
+    </script>
+</body>
+</html>

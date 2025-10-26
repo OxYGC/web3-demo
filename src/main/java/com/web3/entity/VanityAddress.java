@@ -39,6 +39,12 @@ public class VanityAddress {
     @Column(name = "generation_time")
     private Long generationTime; // 生成耗时（毫秒）
 
+    @Column(name = "account_id")
+    private String accountId; // 关联账户ID
+
+    @Column(name = "task_id")
+    private String taskId; // 生成任务ID
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -56,5 +62,18 @@ public class VanityAddress {
         this.pattern = pattern;
         this.matchType = matchType;
         this.generationTime = generationTime;
+    }
+
+    public VanityAddress(String address, String privateKey, String publicKey, String coinType, 
+                        String pattern, String matchType, Long generationTime, String accountId, String taskId) {
+        this.address = address;
+        this.privateKey = privateKey;
+        this.publicKey = publicKey;
+        this.coinType = coinType;
+        this.pattern = pattern;
+        this.matchType = matchType;
+        this.generationTime = generationTime;
+        this.accountId = accountId;
+        this.taskId = taskId;
     }
 }

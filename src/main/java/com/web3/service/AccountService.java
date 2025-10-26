@@ -6,12 +6,14 @@ import com.web3.entity.AccountAddress;
 import com.web3.repository.AccountRepository;
 import com.web3.repository.AccountAddressRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AccountService {
@@ -131,5 +133,36 @@ public class AccountService {
             accountId = "ACC" + System.currentTimeMillis() + (int)(Math.random() * 1000);
         } while (accountRepository.existsByAccountId(accountId));
         return accountId;
+    }
+
+    /**
+     * 检查账号是否存在
+     */
+    public boolean accountExists(String accountId) {
+        return accountRepository.existsByAccountId(accountId);
+    }
+
+    /**
+     * 将靓号地址关联到账户
+     */
+    @Transactional
+    public void addVanityAddressToAccount(String accountId, com.web3.entity.VanityAddress vanityAddress) {
+        // 找到对应账户
+        Optional<Account> account = accountRepository.findByAccountId(accountId);
+        if (account == null) {
+            throw new IllegalArgumentException("账号不存在: " + accountId);
+        }
+
+        // 创建账户地址记录
+        AccountAddress accountAddress = new AccountAddress();
+        accountAddress.setCoinType(vanityAddress.getCoinType());
+        accountAddress.setAddress(vanityAddress.getAddress());
+        accountAddress.setAddressIndex(999); // 靓号地址使用特殊索引
+        accountAddress.setDerivationPath("vanity:" + vanityAddress.getPattern()); // 特殊标记
+        accountAddress.setAccount(account.get());
+
+        accountAddressRepository.save(accountAddress);
+
+        log.info("成功将靓号地址 {} 关联到账户 {}", vanityAddress.getAddress(), accountId);
     }
 }

@@ -25,9 +25,138 @@ import java.util.Map;
 public class VanityAddressController {
 
     private final VanityAddressService vanityAddressService;
+    private final com.web3.service.VanityTaskManager taskManager;
 
     /**
-     * 生成靓号地址
+     * 预估生成时间
+     */
+    @PostMapping("/estimate")
+    public ApiResponse<Map<String, Object>> estimateGenerationTime(@RequestBody Map<String, Object> request) {
+        try {
+            String pattern = (String) request.get("pattern");
+            String matchType = (String) request.getOrDefault("matchType", "CONTAINS");
+            Integer maxResults = (Integer) request.getOrDefault("maxResults", 1);
+
+            Map<String, Object> estimation = vanityAddressService.calculateEstimatedTime(pattern, matchType, maxResults);
+            return ApiResponse.success("预估时间计算成功", estimation);
+        } catch (Exception e) {
+            log.error("预估时间计算失败", e);
+            return ApiResponse.error("预估时间计算失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 创建靓号生成任务
+     */
+    @PostMapping("/create-task")
+    public ApiResponse<String> createVanityTask(@Valid @RequestBody VanityAddressRequest request) {
+        try {
+            String taskId = vanityAddressService.createVanityAddressTask(
+                    request.getPattern(),
+                    request.getCoinType(),
+                    request.getMaxResults(),
+                    request.getMatchType(),
+                    request.getGenerationType(),
+                    request.getAccountId(),
+                    request.getMnemonic()
+            );
+
+            return ApiResponse.success("任务创建成功", taskId);
+        } catch (Exception e) {
+            log.error("创建靓号生成任务失败", e);
+            return ApiResponse.error("创建任务失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 开始执行任务
+     */
+    @PostMapping("/start-task/{taskId}")
+    public ApiResponse<String> startTask(@PathVariable String taskId) {
+        try {
+            vanityAddressService.startVanityAddressGeneration(taskId);
+            return ApiResponse.success("任务已开始执行", taskId);
+        } catch (Exception e) {
+            log.error("启动任务失败: {}", taskId, e);
+            return ApiResponse.error("启动任务失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 暂停任务
+     */
+    @PostMapping("/pause-task/{taskId}")
+    public ApiResponse<String> pauseTask(@PathVariable String taskId) {
+        try {
+            taskManager.pauseTask(taskId);
+            return ApiResponse.success("任务已暂停", taskId);
+        } catch (Exception e) {
+            log.error("暂停任务失败: {}", taskId, e);
+            return ApiResponse.error("暂停任务失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 恢复任务
+     */
+    @PostMapping("/resume-task/{taskId}")
+    public ApiResponse<String> resumeTask(@PathVariable String taskId) {
+        try {
+            taskManager.resumeTask(taskId);
+            return ApiResponse.success("任务已恢复", taskId);
+        } catch (Exception e) {
+            log.error("恢复任务失败: {}", taskId, e);
+            return ApiResponse.error("恢复任务失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 停止任务
+     */
+    @PostMapping("/stop-task/{taskId}")
+    public ApiResponse<String> stopTask(@PathVariable String taskId) {
+        try {
+            taskManager.stopTask(taskId);
+            return ApiResponse.success("任务已停止", taskId);
+        } catch (Exception e) {
+            log.error("停止任务失败: {}", taskId, e);
+            return ApiResponse.error("停止任务失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取任务状态
+     */
+    @GetMapping("/task-status/{taskId}")
+    public ApiResponse<com.web3.dto.VanityGenerationTask> getTaskStatus(@PathVariable String taskId) {
+        try {
+            com.web3.dto.VanityGenerationTask task = taskManager.getTask(taskId);
+            if (task == null) {
+                return ApiResponse.error("任务不存在");
+            }
+            return ApiResponse.success("获取任务状态成功", task);
+        } catch (Exception e) {
+            log.error("获取任务状态失败: {}", taskId, e);
+            return ApiResponse.error("获取任务状态失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取所有活跃任务
+     */
+    @GetMapping("/active-tasks")
+    public ApiResponse<Map<String, com.web3.dto.VanityGenerationTask>> getActiveTasks() {
+        try {
+            Map<String, com.web3.dto.VanityGenerationTask> tasks = taskManager.getAllActiveTasks();
+            return ApiResponse.success("获取活跃任务成功", tasks);
+        } catch (Exception e) {
+            log.error("获取活跃任务失败", e);
+            return ApiResponse.error("获取活跃任务失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 生成靓号地址 (兼容旧接口)
      */
     @PostMapping("/generate")
     public ApiResponse<List<VanityAddressResult>> generateVanityAddresses(@Valid @RequestBody VanityAddressRequest request) {
