@@ -380,11 +380,12 @@
     </nav>
 
     <div class="container mt-4">
-        <div class="row">
-            <div class="col-md-12">
-                <h2>靓号地址生成</h2>
-                <p class="text-muted">生成符合特定规则的钱包地址</p>
-
+        <div class="hero-section">
+            <h1 class="hero-title">靓号地址生成</h1>
+            <p class="hero-subtitle">生成符合特定规则的钱包地址，页面布局与站点其它页面保持一致</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-8">
                 <!-- 生成配置 -->
                 <div class="card mb-4">
                     <div class="card-header">
@@ -476,9 +477,18 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-lightning-charge"></i> 生成靓号地址
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <button type="submit" class="btn btn-primary" id="btnStart">
+                                    <i class="bi bi-lightning-charge"></i> 开始生成
+                                </button>
+                                <button type="button" class="btn btn-warning" id="btnPause" disabled onclick="pauseCurrentTask()">
+                                    <i class="bi bi-pause-circle"></i> 暂停
+                                </button>
+                                <button type="button" class="btn btn-info" id="btnResume" disabled onclick="resumeCurrentTask()">
+                                    <i class="bi bi-play-circle"></i> 继续
+                                </button>
+                                <button type="button" class="btn btn-danger" id="btnStop" disabled onclick="stopCurrentTask()">
+                                    <i class="bi bi-stop-circle"></i> 停止
                                 </button>
                                 <button type="button" class="btn btn-success" id="downloadBtn" disabled>
                                     <i class="bi bi-download"></i> 下载结果
@@ -490,30 +500,55 @@
                         </form>
                     </div>
                 </div>
-
-                <!-- 加载状态 -->
-                <div id="loading" class="loading text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="col-lg-4">
+                <!-- 进度与状态 -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex align-items-center gap-2">
+                        <i class="bi bi-activity"></i>
+                        <h6 class="mb-0">进度与状态</h6>
                     </div>
-                    <p>正在生成靓号地址，请稍候...</p>
-                    <div class="alert alert-info">
-                        <strong>提示：</strong>靓号地址生成需要一定时间，请耐心等待。规则越复杂，生成时间越长。
+                    <div class="card-body">
+                        <div id="loading" class="loading text-center">
+                            <div class="spinner-border text-primary" role="status" aria-live="polite" aria-label="生成中">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2 mb-2">正在生成靓号地址，请稍候...</p>
+                            <div class="alert alert-info mb-0">
+                                <strong>提示：</strong>靓号地址生成需要一定时间，请耐心等待。规则越复杂，生成时间越长。
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- 结果显示 -->
-                <div id="resultSection" style="display: none;">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">生成结果</h5>
-                            <span class="badge bg-primary" id="resultCount">0</span>
-                        </div>
-                        <div class="card-body result-section" id="resultList">
-                            <!-- 结果将在这里显示 -->
-                        </div>
+                <div class="card mb-4" id="resultSection" style="display: none;">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">生成结果</h6>
+                        <span class="badge bg-primary" id="resultCount">0</span>
+                    </div>
+                    <div class="card-body result-section" id="resultList">
+                        <!-- 结果将在这里显示 -->
                     </div>
                 </div>
+
+                <!-- 小贴士/帮助 -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex align-items-center gap-2">
+                        <i class="bi bi-lightbulb"></i>
+                        <h6 class="mb-0">使用小贴士</h6>
+                    </div>
+                    <div class="card-body small text-muted">
+                        <ul class="mb-0 ps-3">
+                            <li>前缀/后缀越长，耗时越久；可先从短规则开始试验</li>
+                            <li>BTC 可选 P2PKH/P2SH/Bech32 地址格式；ETH 推荐 EIP-55</li>
+                            <li>生成完成后可下载文本，包含地址格式和匹配规则</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 历史记录挂载点 -->
+                <div id="historyMount"></div>
             </div>
         </div>
     </div>
@@ -538,8 +573,8 @@
 
         // 显示历史地址
         function displayHistoryAddresses(addresses) {
-            // 在结果区域后添加历史记录区域
-            const container = document.querySelector('.container');
+            // 在右侧栏的挂载点添加历史记录区域
+            const mount = document.getElementById('historyMount') || document.querySelector('.col-lg-4') || document.querySelector('.container');
             const historySection = document.createElement('div');
             historySection.innerHTML = `
                 <div class="card mt-4">
@@ -639,7 +674,11 @@
             }
         }
 
-        // 生成靓号地址
+        // 当前任务信息
+        let currentTaskId = null;
+        let taskPollingTimer = null;
+
+        // 生成靓号地址（任务方式，支持暂停/停止/进度）
         async function generateVanityAddresses() {
             const loading = document.getElementById('loading');
             const resultSection = document.getElementById('resultSection');
@@ -675,7 +714,6 @@
                 return;
             }
 
-            // 根据匹配类型给出提示
             const matchTypeDesc = {
                 'CONTAINS': '包含匹配',
                 'PREFIX': '前缀匹配',
@@ -683,51 +721,80 @@
                 'PREFIX,SUFFIX': '前缀+后缀匹配'
             };
 
+            // 禁用开始按钮，启用暂停/停止
+            setButtonsState({ start: true, pause: false, resume: true, stop: false, downloading: true });
+
             loading.style.display = 'block';
             resultSection.style.display = 'none';
 
-            // 更新加载提示
             const ruleText = `${chkPrefix ? '前缀: ' + prefixPattern : ''}${chkPrefix && chkSuffix ? '，' : ''}${chkSuffix ? '后缀: ' + suffixPattern : ''}`;
+
+            // 先获取预估时间
+            let estimated = { estimatedTimeMs: null, estimatedTimeText: '计算中...' };
+            try {
+                const estRes = await fetch('/api/vanity/estimate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pattern: prefixPattern || suffixPattern || '', matchType, maxResults })
+                });
+                const estJson = await estRes.json();
+                if (estJson.success) estimated = estJson.data;
+            } catch (e) { /* ignore */ }
+
+            // 渲染进度UI
             loading.innerHTML = `
-                <div class=\"spinner-border text-primary generating\" role=\"status\">
-                    <span class=\"visually-hidden\">Loading...</span>
+                <div class=\"d-flex align-items-center gap-3\">
+                    <div class=\"spinner-border text-primary generating\" role=\"status\">
+                        <span class=\"visually-hidden\">Loading...</span>
+                    </div>
+                    <div>
+                        <h5 class=\"mt-2 mb-1\">🔥 正在生成靓号地址...</h5>
+                        <div class=\"text-muted\">规则: ${ruleText} | 类型: ${matchTypeDesc[matchType]} | 币种: ${coinType} | 格式: ${addressFormat}</div>
+                        <div class=\"small text-info\">预计用时: <span id=\"etaText\">${estimated.estimatedTimeText || '计算中...'}</span></div>
+                    </div>
                 </div>
-                <h5 class=\"mt-3\">🔥 正在生成靓号地址...</h5>
-                <p class=\"text-muted\">规则: ${ruleText} | 类型: ${matchTypeDesc[matchType]} | 币种: ${coinType} | 格式: ${addressFormat}</p>
-                <div class=\"alert alert-info\">
-                    <strong>💡 提示：</strong>靓号地址生成需要一定时间，请耐心等待。${matchType === 'PREFIX' ? '前缀' : matchType === 'SUFFIX' ? '后缀' : '前后缀'}匹配难度较高。
+                <div class=\"progress mt-3\" style=\"height: 18px;\">
+                    <div id=\"progressBar\" class=\"progress-bar progress-bar-striped progress-bar-animated\" role=\"progressbar\" style=\"width: 0%\">0%</div>
+                </div>
+                <div class=\"d-flex flex-wrap gap-3 mt-2 small\">
+                    <div>已找到: <strong id=\"foundCount\">0</strong> / ${maxResults}</div>
+                    <div>尝试次数: <strong id=\"attemptCount\">0</strong></div>
+                    <div>已运行: <strong id=\"elapsedText\">0s</strong></div>
+                    <div>当前速度: <strong id=\"speedText\">-</strong></div>
                 </div>
             `;
 
             try {
-                const response = await fetch('/api/vanity/generate', {
+                // 1) 创建任务
+                const createRes = await fetch('/api/vanity/create-task', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        coinType: coinType,
-                        maxResults: maxResults,
-                        matchType: matchType,
-                        addressFormat: addressFormat,
-                        prefixPattern: prefixPattern,
-                        suffixPattern: suffixPattern
+                        coinType, maxResults, matchType, addressFormat, prefixPattern, suffixPattern
                     })
                 });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    currentResults = result.data;
-                    displayResults(currentResults);
-                    showSuccess(`成功生成 ${currentResults.length} 个靓号地址`);
-                } else {
-                    showError('生成失败: ' + result.message);
+                const createJson = await createRes.json();
+                if (!createJson.success) {
+                    showError('创建任务失败: ' + createJson.message);
+                    setButtonsState({ start: false, pause: true, resume: true, stop: true });
+                    return;
                 }
+                currentTaskId = createJson.data;
+
+                // 2) 启动任务
+                const startRes = await fetch(`/api/vanity/start-task/${currentTaskId}`, { method: 'POST' });
+                const startJson = await startRes.json();
+                if (!startJson.success) {
+                    showError('启动任务失败: ' + startJson.message);
+                    setButtonsState({ start: false, pause: true, resume: true, stop: true });
+                    return;
+                }
+
+                // 3) 开始轮询状态
+                beginPollingTask();
             } catch (error) {
                 showError('网络错误: ' + error.message);
-            } finally {
-                loading.style.display = 'none';
+                setButtonsState({ start: false, pause: true, resume: true, stop: true });
             }
         }
 
@@ -822,6 +889,162 @@
                 }
             } catch (error) {
                 showError('下载失败: ' + error.message);
+            }
+        }
+
+        // 任务按钮状态控制
+        function setButtonsState({ start, pause, resume, stop, downloading }) {
+            document.getElementById('btnStart').disabled = !!start;
+            document.getElementById('btnPause').disabled = !!pause;
+            document.getElementById('btnResume').disabled = !!resume;
+            document.getElementById('btnStop').disabled = !!stop;
+            if (typeof downloading !== 'undefined') {
+                document.getElementById('downloadBtn').disabled = !!downloading;
+            }
+        }
+
+        // 开始轮询任务状态
+        function beginPollingTask() {
+            if (taskPollingTimer) clearInterval(taskPollingTimer);
+            taskPollingTimer = setInterval(pollTaskStatus, 1000);
+        }
+
+        // 轮询任务状态
+        async function pollTaskStatus() {
+            if (!currentTaskId) return;
+            try {
+                const res = await fetch(`/api/vanity/task-status/${currentTaskId}`);
+                const json = await res.json();
+                if (!json.success) return;
+                const task = json.data;
+
+                // 更新进度条与统计
+                const progress = Math.max(0, Math.min(100, task.progress || 0));
+                const progressBar = document.getElementById('progressBar');
+                if (progressBar) {
+                    progressBar.style.width = progress + '%';
+                    progressBar.textContent = progress + '%';
+                }
+                const found = (task.foundCount && (task.foundCount.value || task.foundCount)) || (task.results ? task.results.length : 0);
+                const attempts = (task.attemptCount && (task.attemptCount.value || task.attemptCount)) || 0;
+                const etaMs = task.estimatedTimeMs || null;
+                const elapsedMs = task.runningTimeMs || 0;
+                const speed = task.currentSpeed || 0;
+
+                const foundEl = document.getElementById('foundCount');
+                const attEl = document.getElementById('attemptCount');
+                const etaEl = document.getElementById('etaText');
+                const elapsedEl = document.getElementById('elapsedText');
+                const speedEl = document.getElementById('speedText');
+
+                if (foundEl) foundEl.textContent = found;
+                if (attEl) attEl.textContent = attempts;
+                if (elapsedEl) elapsedEl.textContent = formatMs(elapsedMs);
+                if (speedEl) speedEl.textContent = speed > 0 ? speed.toFixed(1) + ' it/s' : '-';
+                if (etaEl && etaMs) {
+                    // 剩余时间粗略估计：如果有进度，则估算剩余；否则显示总预计
+                    const remaining = progress > 0 ? Math.max(0, etaMs - elapsedMs) : etaMs;
+                    etaEl.textContent = formatMs(remaining);
+                }
+
+                // 根据状态处理完成/暂停/停止
+                switch ((task.status || '').toUpperCase()) {
+                    case 'COMPLETED':
+                        stopPolling();
+                        currentResults = task.results || [];
+                        displayResults(currentResults);
+                        setButtonsState({ start: false, pause: true, resume: true, stop: true, downloading: currentResults.length === 0 });
+                        document.getElementById('loading').style.display = 'none';
+                        showSuccess(`任务完成，生成 ${currentResults.length} 个地址`);
+                        break;
+                    case 'PAUSED':
+                        setButtonsState({ start: true, pause: true, resume: false, stop: false });
+                        break;
+                    case 'STOPPED':
+                    case 'ERROR':
+                        stopPolling();
+                        setButtonsState({ start: false, pause: true, resume: true, stop: true, downloading: true });
+                        document.getElementById('loading').style.display = 'none';
+                        if (task.status === 'ERROR') {
+                            showError('任务出错: ' + (task.errorMessage || '未知错误'));
+                        } else {
+                            showSuccess('任务已停止');
+                        }
+                        break;
+                    case 'RUNNING':
+                        setButtonsState({ start: true, pause: false, resume: true, stop: false, downloading: true });
+                        break;
+                }
+            } catch (e) {
+                console.warn('轮询失败', e);
+            }
+        }
+
+        function stopPolling() {
+            if (taskPollingTimer) {
+                clearInterval(taskPollingTimer);
+                taskPollingTimer = null;
+            }
+        }
+
+        function formatMs(ms) {
+            if (!ms || ms < 1000) return '1s';
+            const s = Math.floor(ms / 1000);
+            if (s < 60) return s + 's';
+            const m = Math.floor(s / 60);
+            if (m < 60) return m + 'm';
+            const h = Math.floor(m / 60);
+            return h + 'h';
+        }
+
+        // 暂停任务
+        async function pauseCurrentTask() {
+            if (!currentTaskId) return;
+            try {
+                const res = await fetch(`/api/vanity/pause-task/${currentTaskId}`, { method: 'POST' });
+                const json = await res.json();
+                if (!json.success) {
+                    showError('暂停失败: ' + json.message);
+                } else {
+                    showSuccess('已暂停');
+                }
+            } catch (e) {
+                showError('暂停失败: ' + e.message);
+            }
+        }
+
+        // 恢复任务
+        async function resumeCurrentTask() {
+            if (!currentTaskId) return;
+            try {
+                const res = await fetch(`/api/vanity/resume-task/${currentTaskId}`, { method: 'POST' });
+                const json = await res.json();
+                if (!json.success) {
+                    showError('继续失败: ' + json.message);
+                } else {
+                    showSuccess('已继续');
+                    beginPollingTask();
+                }
+            } catch (e) {
+                showError('继续失败: ' + e.message);
+            }
+        }
+
+        // 停止任务
+        async function stopCurrentTask() {
+            if (!currentTaskId) return;
+            try {
+                const res = await fetch(`/api/vanity/stop-task/${currentTaskId}`, { method: 'POST' });
+                const json = await res.json();
+                if (!json.success) {
+                    showError('停止失败: ' + json.message);
+                } else {
+                    showSuccess('已停止');
+                    stopPolling();
+                    setButtonsState({ start: false, pause: true, resume: true, stop: true, downloading: true });
+                }
+            } catch (e) {
+                showError('停止失败: ' + e.message);
             }
         }
 

@@ -105,7 +105,8 @@ public class VanityAddressController {
     @PostMapping("/resume-task/{taskId}")
     public ApiResponse<String> resumeTask(@PathVariable String taskId) {
         try {
-            taskManager.resumeTask(taskId);
+            // 通过重新启动生成逻辑来恢复（重新启动异步执行）
+            vanityAddressService.startVanityAddressGeneration(taskId);
             return ApiResponse.success("任务已恢复", taskId);
         } catch (Exception e) {
             log.error("恢复任务失败: {}", taskId, e);
@@ -211,6 +212,20 @@ public class VanityAddressController {
 
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
+     * 历史靓号地址列表（按时间倒序）
+     */
+    @GetMapping("/list")
+    public ApiResponse<List<com.web3.entity.VanityAddress>> listVanityAddresses() {
+        try {
+            List<com.web3.entity.VanityAddress> list = vanityAddressService.getAllVanityAddresses();
+            return ApiResponse.success("获取历史靓号地址成功", list);
+        } catch (Exception e) {
+            log.error("获取历史靓号地址失败", e);
+            return ApiResponse.error("获取历史靓号地址失败: " + e.getMessage());
         }
     }
 

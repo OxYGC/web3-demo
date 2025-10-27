@@ -197,11 +197,15 @@ public class VanityAddressService {
             // 等待所有任务完成或被停止
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-            // 任务完成
-            taskManager.completeTask(task.getTaskId());
-
-            log.info("靓号地址生成任务完成 - 任务ID: {}, 总尝试次数: {}, 成功数量: {}", 
-                    task.getTaskId(), attempts.get(), results.size());
+            // 任务完成（仅在未被停止/暂停的情况下标记完成）
+            com.web3.dto.VanityGenerationTask latest = taskManager.getTask(task.getTaskId());
+            if (latest != null && latest.getStatus() == com.web3.dto.VanityTaskStatus.RUNNING) {
+                taskManager.completeTask(task.getTaskId());
+                log.info("靓号地址生成任务完成 - 任务ID: {}, 总尝试次数: {}, 成功数量: {}", 
+                        task.getTaskId(), attempts.get(), results.size());
+            } else {
+                log.info("靓号任务未标记完成，当前状态: {} (taskId={})", latest == null ? "null" : latest.getStatus(), task.getTaskId());
+            }
 
         } catch (Exception e) {
             log.error("执行靓号生成任务失败: {}", task.getTaskId(), e);
