@@ -7,7 +7,6 @@ import net.i2p.crypto.eddsa.spec.EdDSANamedCurveTable;
 import net.i2p.crypto.eddsa.spec.EdDSAPrivateKeySpec;
 import net.i2p.crypto.eddsa.spec.EdDSAPublicKeySpec;
 import org.apache.commons.codec.binary.Hex;
-import org.bitcoinj.base.Base58;
 
 import java.security.SecureRandom;
 

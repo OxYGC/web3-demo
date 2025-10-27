@@ -2,8 +2,10 @@ package com.web3.service.address.strategy;
 
 import com.web3.entity.AddressInfo;
 import com.web3.service.address.IAddressGenerationStrategy;
-import org.bitcoinj.base.Address;
-import org.bitcoinj.base.LegacyAddress;
+
+import org.bitcoinj.core.Address;
+import org.bitcoinj.core.ECKey;
+import org.bitcoinj.core.LegacyAddress;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.crypto.*;
 import org.springframework.stereotype.Service;

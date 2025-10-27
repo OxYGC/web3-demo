@@ -2,8 +2,8 @@ package com.web3.service.btc.impl;
 
 import com.web3.entity.vo.KeyPairResult;
 import com.web3.service.btc.SignerService;
+import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
-import org.bitcoinj.crypto.ECKey;
 import org.bitcoinj.params.MainNetParams;
 import org.springframework.stereotype.Service;
 

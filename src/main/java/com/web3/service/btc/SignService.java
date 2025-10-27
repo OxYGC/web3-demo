@@ -6,11 +6,8 @@ import com.web3.entity.dto.btc.Vin;
 import com.web3.entity.dto.btc.Vout;
 import com.web3.util.AddrOutScriptParser;
 import jakarta.annotation.Resource;
-import org.bitcoinj.base.Coin;
-import org.bitcoinj.base.ScriptType;
-import org.bitcoinj.base.Sha256Hash;
+
 import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.ECKey;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.script.Script;
 import org.bouncycastle.util.encoders.Hex;
@@ -47,10 +44,13 @@ public class SignService {
             // prev tx hash
             Sha256Hash prevHash = Sha256Hash.wrap(vin.getTxid()); // txid hex -> Sha256Hash
             // 构造 outpoint：构造器为 TransactionOutPoint(long index, Sha256Hash hash)
-            TransactionOutPoint outPoint = new TransactionOutPoint(vin.getVout(), prevHash);
+//            TransactionOutPoint outPoint = new TransactionOutPoint(vin.getVout(), prevHash);
+            TransactionOutPoint outPoint = new TransactionOutPoint(params,vin.getVout(), prevHash);
+
             //  scriptBytes 先给空（签名前不会用到此 scriptSig）
             byte[] emptyScript = new byte[0];
-            TransactionInput input = new TransactionInput(tx, emptyScript, outPoint, vin.getSequence());
+//            TransactionInput input = new TransactionInput(tx, emptyScript, outPoint, vin.getSequence());
+            TransactionInput input = new TransactionInput(params,tx, emptyScript, outPoint);
             tx.addInput(input);
         }
 
@@ -64,7 +64,7 @@ public class SignService {
         // 2. 遍历每个输入，计算 sigHash
         for (int i = 0; i < vins.size(); i++) {
             Vin vin = vins.get(i);
-            ScriptType type = AddrOutScriptParser.detectType(vin.getScriptPubKey());
+            Script.ScriptType type = AddrOutScriptParser.detectType(vin.getScriptPubKey());
 
             switch (type) {
                 case P2PKH:

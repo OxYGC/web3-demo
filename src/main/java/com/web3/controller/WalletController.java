@@ -25,7 +25,7 @@ public class WalletController {
     @PostMapping("/generate-mnemonic")
     public ApiResponse<String> generateMnemonic(@RequestBody MnemonicGenerateRequest request) {
         try {
-            // 验证词数是否符合BIP39标准
+            // 验证词数是否符合BIP39标准 (默认是英文12个单词)
             int wordCount = request.getWordCount();
             if (wordCount != 12 && wordCount != 15 && wordCount != 18 && wordCount != 21 && wordCount != 24) {
                 return ApiResponse.error("助记词长度必须是12、15、18、21或24个单词");

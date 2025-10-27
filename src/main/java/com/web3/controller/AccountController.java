@@ -53,4 +53,21 @@ public class AccountController {
             return ApiResponse.error("创建账号失败: " + e.getMessage());
         }
     }
+
+    /**
+     * 删除账号（及其关联的钱包地址）
+     */
+    @DeleteMapping("/{accountId}")
+    public ApiResponse<Boolean> deleteAccount(@PathVariable String accountId) {
+        try {
+            boolean deleted = accountService.deleteAccount(accountId);
+            if (deleted) {
+                return ApiResponse.success("账号删除成功", true);
+            } else {
+                return ApiResponse.error("账号不存在: " + accountId);
+            }
+        } catch (Exception e) {
+            return ApiResponse.error("删除账号失败: " + e.getMessage());
+        }
+    }
 }

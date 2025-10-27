@@ -6,6 +6,7 @@ import com.web3.dto.VanityTaskStatus;
 import com.web3.entity.VanityAddress;
 import com.web3.repository.VanityAddressRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.bitcoinj.script.Script;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,13 +45,21 @@ public class VanityAddressService {
      */
     public String createVanityAddressTask(String pattern, String coinType, int maxResults, 
                                          String matchType, String generationType, 
-                                         String accountId, String mnemonic) {
+                                         String accountId, String mnemonic,
+                                         String addressFormat, String prefixPattern, String suffixPattern) {
         // 验证参数
         validateGenerationParameters(generationType, accountId, mnemonic);
 
+        // 兼容：若未提供总 pattern，但提供了前/后缀，则组合为 "prefix||suffix"
+        String combinedPattern = pattern;
+        if ((combinedPattern == null || combinedPattern.isBlank()) && (prefixPattern != null || suffixPattern != null)) {
+            String pfx = prefixPattern == null ? "" : prefixPattern;
+            String sfx = suffixPattern == null ? "" : suffixPattern;
+            combinedPattern = pfx + "||" + sfx;
+        }
         // 创建任务
-        String taskId = taskManager.createTask(pattern, coinType, maxResults, matchType, 
-                                             generationType, accountId, mnemonic);
+        String taskId = taskManager.createTask(combinedPattern, coinType, maxResults, matchType, 
+                                             generationType, accountId, mnemonic, addressFormat, prefixPattern, suffixPattern);
 
         log.info("创建靓号生成任务: {}", taskId);
         return taskId;
@@ -126,8 +135,9 @@ public class VanityAddressService {
                             }
 
                             if (!wallets.isEmpty() && wallets.get(0) != null) {
-                                String address = wallets.get(0).getAddress();
-                                if (matchesPattern(address, task.getPattern(), task.getMatchType())) {
+                                String rawAddress = wallets.get(0).getAddress();
+                                String address = applyAddressFormat(task.getCoinType(), rawAddress, privateKey, task.getAddressFormat());
+                                if (matchesPatternWithPrefixSuffix(address, task.getPattern(), task.getMatchType(), task.getPrefixPattern(), task.getSuffixPattern())) {
                                     long genTime = System.currentTimeMillis() - genStartTime;
 
                                     synchronized (results) {
@@ -137,7 +147,8 @@ public class VanityAddressService {
                                                 privateKey,
                                                 wallets.get(0).getPublicKey(),
                                                 task.getCoinType(),
-                                                task.getPattern()
+                                                task.getPattern(),
+                                                task.getAddressFormat()
                                             );
                                             results.add(result);
                                             task.getResults().add(result);
@@ -226,11 +237,12 @@ public class VanityAddressService {
      */
     @Transactional
     public List<VanityAddressResult> generateVanityAddresses(String pattern, String coinType, int maxResults, 
-                                                           String matchType, String generationType, 
-                                                           String accountId, String mnemonic) {
+                                                          String matchType, String generationType, 
+                                                          String accountId, String mnemonic,
+                                                          String addressFormat, String prefixPattern, String suffixPattern) {
         // 创建并执行任务
         String taskId = createVanityAddressTask(pattern, coinType, maxResults, matchType, 
-                                               generationType, accountId, mnemonic);
+                                               generationType, accountId, mnemonic, addressFormat, prefixPattern, suffixPattern);
         startVanityAddressGeneration(taskId);
 
         // 等待任务完成
@@ -264,17 +276,24 @@ public class VanityAddressService {
         long baseTime;
         String difficulty;
 
-        switch (matchType.toUpperCase()) {
-            case "PREFIX":
-            case "SUFFIX":
-                baseTime = (long) Math.pow(16, patternLength) / 2000; // 考虑虚拟线程优化
-                difficulty = patternLength <= 3 ? "简单" : patternLength <= 5 ? "中等" : "困难";
-                break;
-            case "CONTAINS":
-            default:
-                baseTime = (long) Math.pow(16, patternLength) / 4000; // 包含匹配相对容易
-                difficulty = patternLength <= 4 ? "简单" : patternLength <= 6 ? "中等" : "困难";
-                break;
+        String mt = matchType == null ? "CONTAINS" : matchType.toUpperCase();
+        if (mt.contains(",")) {
+            // 多选（例如 PREFIX,SUFFIX）按较难的类型估算
+            baseTime = (long) Math.pow(16, patternLength) / 2000;
+            difficulty = patternLength <= 3 ? "简单" : patternLength <= 5 ? "中等" : "困难";
+        } else {
+            switch (mt) {
+                case "PREFIX":
+                case "SUFFIX":
+                    baseTime = (long) Math.pow(16, patternLength) / 2000; // 考虑虚拟线程优化
+                    difficulty = patternLength <= 3 ? "简单" : patternLength <= 5 ? "中等" : "困难";
+                    break;
+                case "CONTAINS":
+                default:
+                    baseTime = (long) Math.pow(16, patternLength) / 4000; // 包含匹配相对容易
+                    difficulty = patternLength <= 4 ? "简单" : patternLength <= 6 ? "中等" : "困难";
+                    break;
+            }
         }
 
         long estimatedTime = Math.max(1000, Math.min(baseTime * maxResults, 30 * 60 * 1000));
@@ -359,25 +378,108 @@ public class VanityAddressService {
     }
 
     /**
+     * 根据地址格式返回对应链地址（BTC: P2PKH/P2SH/Bech32；ETH: EIP-55）
+     */
+    private String applyAddressFormat(String coinType, String rawAddress, String privateKeyHex, String addressFormat) {
+        if (coinType == null) return rawAddress;
+        String ct = coinType.toUpperCase();
+        try {
+            if ("ETH".equals(ct)) {
+                if (addressFormat != null && addressFormat.equalsIgnoreCase("EIP55")) {
+                    String addr = rawAddress;
+                    if (!addr.startsWith("0x") && !addr.startsWith("0X")) {
+                        addr = "0x" + addr;
+                    }
+                    return org.web3j.crypto.Keys.toChecksumAddress(addr);
+                }
+                return rawAddress;
+            }
+            if (!"BTC".equals(ct)) {
+                return rawAddress;
+            }
+            String fmt = (addressFormat == null || addressFormat.isBlank()) ? "P2PKH" : addressFormat.toUpperCase();
+            String cleanPriv = privateKeyHex == null ? null : (privateKeyHex.startsWith("0x") || privateKeyHex.startsWith("0X") ? privateKeyHex.substring(2) : privateKeyHex);
+            if (cleanPriv == null || !cleanPriv.matches("^[0-9a-fA-F]{64}$")) {
+                return rawAddress; // 无法从私钥重建，返回原始
+            }
+            org.bitcoinj.core.ECKey ecKey = org.bitcoinj.core.ECKey.fromPrivate(new java.math.BigInteger(cleanPriv, 16));
+            org.bitcoinj.params.MainNetParams params = org.bitcoinj.params.MainNetParams.get();
+            switch (fmt) {
+                case "P2PKH":
+                    return org.bitcoinj.core.Address.fromKey(params, ecKey, Script.ScriptType.P2PKH).toString();
+                case "P2SH": {
+                    org.bitcoinj.script.Script segwitScript = org.bitcoinj.script.ScriptBuilder.createP2WPKHOutputScript(ecKey);
+                    org.bitcoinj.script.Script p2sh = org.bitcoinj.script.ScriptBuilder.createP2SHOutputScript(segwitScript);
+                    return org.bitcoinj.core.LegacyAddress.fromScriptHash(params, org.bitcoinj.script.ScriptPattern.extractHashFromP2SH(p2sh)).toString();
+                }
+                case "BECH32":
+                case "BECH32_P2WPKH":
+                case "P2WPKH":
+                    return org.bitcoinj.core.Address.fromKey(params, ecKey, Script.ScriptType.P2WPKH).toString();
+                default:
+                    return rawAddress;
+            }
+        } catch (Exception e) {
+            return rawAddress;
+        }
+    }
+
+    /**
      * 检查地址是否匹配模式
      */
     private boolean matchesPattern(String address, String pattern, String matchType) {
-        if (pattern == null || pattern.trim().isEmpty()) {
-            return false;
-        }
+        // 保留旧实现以兼容
+        return matchesPatternWithPrefixSuffix(address, pattern, matchType, null, null);
+    }
 
-        String cleanAddress = address.toLowerCase();
-        String cleanPattern = pattern.toLowerCase();
+    private boolean matchesPatternWithPrefixSuffix(String address, String pattern, String matchType, String prefixPattern, String suffixPattern) {
+        // 支持新旧两种输入方式：
+        // 1) 旧：pattern + matchType
+        // 2) 新：prefixPattern/suffixPattern（可任选其一），若提供则优先使用
 
-        // 移除地址前缀（如0x、1等）进行匹配
+        String cleanAddress = address == null ? "" : address.toLowerCase();
+
+        // 处理地址用于匹配（去除0x前缀等）
         String addressForMatch = cleanAddress;
         if (cleanAddress.startsWith("0x")) {
             addressForMatch = cleanAddress.substring(2);
-        } else if (cleanAddress.startsWith("1") || cleanAddress.startsWith("3") || cleanAddress.startsWith("bc1")) {
-            // Bitcoin地址保持原样
         }
 
-        return switch (matchType.toUpperCase()) {
+        String mt = (matchType == null || matchType.isBlank()) ? "CONTAINS" : matchType.toUpperCase();
+
+        String pfx = prefixPattern == null ? null : prefixPattern.toLowerCase();
+        String sfx = suffixPattern == null ? null : suffixPattern.toLowerCase();
+
+        boolean hasPfx = pfx != null && !pfx.isEmpty();
+        boolean hasSfx = sfx != null && !sfx.isEmpty();
+
+        if (hasPfx || hasSfx) {
+            boolean ok = true;
+            if (hasPfx) ok = ok && addressForMatch.startsWith(pfx);
+            if (hasSfx) ok = ok && addressForMatch.endsWith(sfx);
+            if (!hasPfx && !hasSfx) return false;
+            return ok;
+        }
+
+        // 回退到旧逻辑：pattern + matchType
+        if (pattern == null || pattern.trim().isEmpty()) {
+            return false;
+        }
+        String cleanPattern = pattern.toLowerCase();
+
+        if (mt.contains(",")) {
+            boolean needPrefix = mt.contains("PREFIX");
+            boolean needSuffix = mt.contains("SUFFIX");
+            boolean ok = true;
+            if (needPrefix) ok = ok && addressForMatch.startsWith(cleanPattern);
+            if (needSuffix) ok = ok && addressForMatch.endsWith(cleanPattern);
+            if (!needPrefix && !needSuffix) {
+                return addressForMatch.contains(cleanPattern);
+            }
+            return ok;
+        }
+
+        return switch (mt) {
             case "PREFIX" -> addressForMatch.startsWith(cleanPattern);
             case "SUFFIX" -> addressForMatch.endsWith(cleanPattern);
             case "CONTAINS" -> addressForMatch.contains(cleanPattern);
@@ -399,6 +501,9 @@ public class VanityAddressService {
             VanityAddressResult result = results.get(i);
             content.append("🎯 序号: #").append(i + 1).append("\n");
             content.append("💎 币种: ").append(result.getCoinType()).append("\n");
+            if (result.getAddressFormat() != null) {
+                content.append("📦 地址格式: ").append(result.getAddressFormat()).append("\n");
+            }
             content.append("🏠 地址: ").append(result.getAddress()).append("\n");
             content.append("🔐 私钥: ").append(result.getPrivateKey()).append("\n");
             content.append("🔑 公钥: ").append(result.getPublicKey()).append("\n");

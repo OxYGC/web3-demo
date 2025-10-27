@@ -58,7 +58,10 @@ public class VanityAddressController {
                     request.getMatchType(),
                     request.getGenerationType(),
                     request.getAccountId(),
-                    request.getMnemonic()
+                    request.getMnemonic(),
+                    request.getAddressFormat(),
+                    request.getPrefixPattern(),
+                    request.getSuffixPattern()
             );
 
             return ApiResponse.success("任务创建成功", taskId);
@@ -168,7 +171,10 @@ public class VanityAddressController {
                     request.getMatchType(),
                     request.getGenerationType(),
                     request.getAccountId(),
-                    request.getMnemonic()
+                    request.getMnemonic(),
+                    request.getAddressFormat(),
+                    request.getPrefixPattern(),
+                    request.getSuffixPattern()
             );
 
             if (results.isEmpty()) {

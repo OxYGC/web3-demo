@@ -1,7 +1,7 @@
 package com.web3.service.btc;
 
 import com.web3.entity.dto.btc.KeyItemDTO;
-import org.bitcoinj.crypto.ECKey;
+import org.bitcoinj.core.ECKey;
 
 import java.util.List;
 

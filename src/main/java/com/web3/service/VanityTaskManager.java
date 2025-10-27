@@ -26,12 +26,16 @@ public class VanityTaskManager {
      * 创建新的生成任务
      */
     public String createTask(String pattern, String coinType, int maxResults, 
-                           String matchType, String generationType, String accountId, String mnemonic) {
+                           String matchType, String generationType, String accountId, String mnemonic,
+                           String addressFormat, String prefixPattern, String suffixPattern) {
         String taskId = generateTaskId();
 
         VanityGenerationTask task = new VanityGenerationTask();
         task.setTaskId(taskId);
         task.setPattern(pattern);
+        task.setPrefixPattern(prefixPattern);
+        task.setSuffixPattern(suffixPattern);
+        task.setAddressFormat(addressFormat);
         task.setCoinType(coinType);
         task.setMaxResults(maxResults);
         task.setMatchType(matchType);

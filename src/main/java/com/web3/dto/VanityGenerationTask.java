@@ -12,6 +12,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class VanityGenerationTask {
     private String taskId;
     private String pattern;
+    private String prefixPattern; // 新增：前缀规则
+    private String suffixPattern; // 新增：后缀规则
+    private String addressFormat; // 新增：地址格式
     private String coinType;
     private int maxResults;
     private String matchType;

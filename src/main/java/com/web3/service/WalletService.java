@@ -1,13 +1,11 @@
 package com.web3.service;
 
 import com.web3.dto.WalletInfo;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import org.bitcoinj.base.Address;
-import org.bitcoinj.base.ScriptType;
+
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.*;
 import org.bitcoinj.params.MainNetParams;
+import org.bitcoinj.script.Script;
 import org.bitcoinj.wallet.DeterministicSeed;
 import org.bitcoinj.wallet.UnreadableWalletException;
 import org.springframework.stereotype.Service;
@@ -190,7 +188,7 @@ public class WalletService {
 
         // 生成Legacy地址
         ECKey ecKey = ECKey.fromPrivate(addressKey.getPrivKey());
-        Address address = Address.fromKey(MainNetParams.get(), ecKey, ScriptType.P2PKH);
+        Address address = Address.fromKey(MainNetParams.get(), ecKey, Script.ScriptType.P2PKH);
 
         return new WalletInfo("BTC", address.toString(), privateKeyHex, publicKeyHex, index, derivationPath);
     }
@@ -202,7 +200,7 @@ public class WalletService {
         String cleanPrivateKey = privateKey.startsWith("0x") ? privateKey.substring(2) : privateKey;
         ECKey ecKey = ECKey.fromPrivate(new BigInteger(cleanPrivateKey, 16));
 
-        Address address = Address.fromKey(MainNetParams.get(), ecKey, ScriptType.P2PKH);
+        Address address = Address.fromKey(MainNetParams.get(), ecKey, Script.ScriptType.P2PKH);
         String publicKeyHex = ecKey.getPublicKeyAsHex();
 
         return new WalletInfo("BTC", address.toString(), cleanPrivateKey, publicKeyHex, 0, "");

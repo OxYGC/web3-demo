@@ -1,10 +1,7 @@
 package com.web3.util;
 
 import org.apache.commons.codec.binary.Hex;
-import org.bitcoinj.base.Base58;
-
-import java.security.MessageDigest;
-import java.util.Base64;
+import org.bitcoinj.core.Base58;
 
 /**
  * Solana 地址工具类

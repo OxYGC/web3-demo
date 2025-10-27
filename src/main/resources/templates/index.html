@@ -503,7 +503,12 @@
                                         <i class="bi bi-clock ms-2"></i> ID: ${account.account.substring(0, 8)}...
                                     </small>
                                 </div>
-                                <i class="bi bi-chevron-down"></i>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); deleteAccount('${account.account}')" title="删除钱包">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                    <i class="bi bi-chevron-down"></i>
+                                </div>
                             </div>
                         </div>
                         <div class="collapse" id="${collapseId}">
@@ -596,7 +601,27 @@
                 'LTC': 'Ł',
                 'BNB': 'B'
             };
-            return icons[coinType] || '◇';
+
+            return icons[coinType] || coinType;
+        }
+
+        // 删除账号
+        async function deleteAccount(accountId) {
+            if (!confirm(`确认删除钱包 ${accountId} 吗？此操作不可恢复！`)) {
+                return;
+            }
+            try {
+                const response = await fetch(`/api/accounts/${accountId}`, { method: 'DELETE' });
+                const result = await response.json();
+                if (result.success) {
+                    showSuccess('钱包已删除');
+                    loadAccounts();
+                } else {
+                    showError('删除失败: ' + result.message);
+                }
+            } catch (e) {
+                showError('网络错误: ' + e.message);
+            }
         }
 
         // 创建账号

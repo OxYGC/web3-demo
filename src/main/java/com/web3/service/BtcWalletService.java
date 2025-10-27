@@ -6,9 +6,9 @@ import com.web3.entity.dto.btc.PublicKeyWithAddressDTO;
 import com.web3.service.btc.SegwitAddressService;
 import com.web3.service.btc.TaprootAddressService;
 import com.web3.util.PublicKeyUtils;
-import org.bitcoinj.base.LegacyAddress;
+import org.bitcoinj.core.ECKey;
+import org.bitcoinj.core.LegacyAddress;
 import org.bitcoinj.core.NetworkParameters;
-import org.bitcoinj.crypto.ECKey;
 import org.bitcoinj.params.MainNetParams;
 import org.springframework.stereotype.Service;
 

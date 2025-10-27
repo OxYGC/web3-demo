@@ -47,6 +47,7 @@ dependencies {
 
     // 添加 BIP39 助记词生成库
     implementation 'org.bouncycastle:bcprov-jdk18on:1.78.1'
+    implementation 'org.bitcoinj:bitcoinj-core:0.16.2'
 
 }
 

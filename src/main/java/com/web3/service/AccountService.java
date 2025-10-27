@@ -143,6 +143,19 @@ public class AccountService {
     }
 
     /**
+     * 删除账号（级联删除地址）
+     */
+    @Transactional
+    public boolean deleteAccount(String accountId) {
+        Optional<Account> accountOpt = accountRepository.findByAccountId(accountId);
+        if (accountOpt.isEmpty()) {
+            return false;
+        }
+        accountRepository.delete(accountOpt.get());
+        return true;
+    }
+
+    /**
      * 将靓号地址关联到账户
      */
     @Transactional

@@ -392,82 +392,53 @@
                     </div>
                     <div class="card-body">
                         <form id="vanityForm">
-                            <!-- 生成方式选择 -->
-                            <div class="row mb-4">
-                                <div class="col-12">
-                                    <label class="form-label">🔑 生成方式</label>
-                                    <div class="generation-type-selector">
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="radio" name="generationType" id="useAccount" value="account" checked>
-                                                    <label class="form-check-label" for="useAccount">
-                                                        <strong>使用已有账号</strong>
-                                                        <p class="small mb-0">从账号管理中选择已创建的账号</p>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="radio" name="generationType" id="useMnemonic" value="mnemonic">
-                                                    <label class="form-check-label" for="useMnemonic">
-                                                        <strong>使用助记词</strong>
-                                                        <p class="small mb-0">输入12-24个单词的助记词</p>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 账号选择区域 -->
-                            <div class="row mb-3" id="accountSection">
-                                <div class="col-md-6">
-                                    <label for="accountSelect" class="form-label">选择账号</label>
-                                    <select class="form-select" id="accountSelect" required>
-                                        <option value="">请选择账号...</option>
-                                    </select>
-                                    <div class="form-text">选择要用于生成靓号地址的账号</div>
-                                </div>
-                            </div>
-
-                            <!-- 助记词输入区域 -->
-                            <div class="row mb-3" id="mnemonicSection" style="display: none;">
-                                <div class="col-md-8">
-                                    <label for="mnemonicInput" class="form-label">输入助记词</label>
-                                    <textarea class="form-control" id="mnemonicInput" rows="3" placeholder="输入12-24个单词的助记词，单词之间用空格分隔"></textarea>
-                                    <div class="form-text">请输入有效的BIP39助记词</div>
-                                    <div id="mnemonicValidation" class="mt-2"></div>
-                                </div>
-                            </div>
+                            <!-- 生成方式与账号选择已移除，根据需求简化为随机生成，不再选择生成方式与账号 -->
 
                             <!-- 生成配置 -->
                             <div class="row">
                                 <div class="col-md-3">
                                     <div class="mb-3">
-                                        <label for="pattern" class="form-label">靓号规则</label>
-                                        <input type="text" class="form-control" id="pattern" placeholder="例如: 1234, 888, abc" required>
-                                        <div class="form-text">输入您想要的靓号规则</div>
+                                        <label class="form-label">靓号规则</label>
+                                        <div class="mb-2">
+                                            <input type="text" class="form-control" id="prefixPattern" placeholder="前缀匹配（可选）">
+                                            <div class="form-text">输入前缀规则（例如: 1abc）</div>
+                                        </div>
+                                        <div>
+                                            <input type="text" class="form-control" id="suffixPattern" placeholder="后缀匹配（可选）">
+                                            <div class="form-text">输入后缀规则（例如: 999）</div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="mb-3">
-                                        <label for="matchType" class="form-label">匹配类型</label>
-                                        <select class="form-select" id="matchType">
-                                            <option value="CONTAINS">包含匹配</option>
-                                            <option value="PREFIX">前缀匹配</option>
-                                            <option value="SUFFIX">后缀匹配</option>
-                                        </select>
+                                        <label class="form-label">匹配类型</label>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="chkPrefix">
+                                            <label class="form-check-label" for="chkPrefix">前缀匹配</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="chkSuffix">
+                                            <label class="form-check-label" for="chkSuffix">后缀匹配</label>
+                                        </div>
+                                        <div class="form-text">可同时勾选前缀与后缀；若都不勾选，则默认使用包含匹配</div>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="mb-3">
                                         <label for="coinType" class="form-label">币种</label>
-                                        <select class="form-select" id="coinType">
+                                        <select class="form-select" id="coinType" onchange="onCoinTypeChange()">
                                             <option value="BTC">Bitcoin (BTC)</option>
                                             <option value="ETH">Ethereum (ETH)</option>
                                         </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="addressFormat" class="form-label">地址格式</label>
+                                        <select class="form-select" id="addressFormat">
+                                            <!-- 由币种动态填充 -->
+                                        </select>
+                                        <div class="form-text" id="addressFormatHelp">选择生成地址的具体格式</div>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
@@ -614,105 +585,57 @@
 
         // 页面加载时初始化
         document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('vanityForm');
-            const downloadBtn = document.getElementById('downloadBtn');
+        const form = document.getElementById('vanityForm');
+        const downloadBtn = document.getElementById('downloadBtn');
 
-            form.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                await generateVanityAddresses();
-            });
-
-            downloadBtn.addEventListener('click', downloadResults);
-
-            // 初始化生成方式切换
-            initGenerationTypeSwitch();
-
-            // 加载账号列表
-            loadAccountList();
-
-            // 加载历史靓号地址
-            loadHistoryAddresses();
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await generateVanityAddresses();
         });
 
-        // 初始化生成方式切换
-        function initGenerationTypeSwitch() {
-            const useAccountRadio = document.getElementById('useAccount');
-            const useMnemonicRadio = document.getElementById('useMnemonic');
-            const accountSection = document.getElementById('accountSection');
-            const mnemonicSection = document.getElementById('mnemonicSection');
-            const mnemonicInput = document.getElementById('mnemonicInput');
+        downloadBtn.addEventListener('click', downloadResults);
 
-            useAccountRadio.addEventListener('change', function() {
-                if (this.checked) {
-                    accountSection.style.display = 'block';
-                    mnemonicSection.style.display = 'none';
-                    mnemonicInput.removeAttribute('required');
+        // 初始化地址格式下拉
+        onCoinTypeChange();
+
+        // 加载历史靓号地址
+        loadHistoryAddresses();
+    });
+
+        // 地址格式选项随币种变化
+        function onCoinTypeChange() {
+            const coin = document.getElementById('coinType').value;
+            const fmtSelect = document.getElementById('addressFormat');
+            const help = document.getElementById('addressFormatHelp');
+            fmtSelect.innerHTML = '';
+
+            if (coin === 'BTC') {
+                const options = [
+                    { value: 'P2PKH', text: 'P2PKH (Legacy, 1...)' },
+                    { value: 'P2SH', text: 'P2SH (兼容, 3...)' },
+                    { value: 'BECH32', text: 'Bech32 P2WPKH (bc1...)' }
+                ];
+                for (const opt of options) {
+                    const o = document.createElement('option');
+                    o.value = opt.value;
+                    o.textContent = opt.text;
+                    fmtSelect.appendChild(o);
                 }
-            });
-
-            useMnemonicRadio.addEventListener('change', function() {
-                if (this.checked) {
-                    accountSection.style.display = 'none';
-                    mnemonicSection.style.display = 'block';
-                    mnemonicInput.setAttribute('required', 'required');
+                help.textContent = 'BTC 地址格式：P2PKH(传统 1 开头)、P2SH(兼容 3 开头)、Bech32(原生隔离见证 bc1 开头)';
+                fmtSelect.value = 'P2PKH';
+            } else if (coin === 'ETH') {
+                const options = [
+                    { value: 'EIP55', text: 'EIP-55 Checksum (推荐)' },
+                    { value: 'RAW', text: '原始小写(0x...)' }
+                ];
+                for (const opt of options) {
+                    const o = document.createElement('option');
+                    o.value = opt.value;
+                    o.textContent = opt.text;
+                    fmtSelect.appendChild(o);
                 }
-            });
-
-            // 助记词实时验证
-            mnemonicInput.addEventListener('input', validateMnemonic);
-        }
-
-        // 加载账号列表
-        async function loadAccountList() {
-            try {
-                const response = await fetch('/api/accounts');
-                const result = await response.json();
-
-                if (result.success) {
-                    const accountSelect = document.getElementById('accountSelect');
-                    accountSelect.innerHTML = '<option value="">请选择账号...</option>';
-
-                    result.data.forEach(account => {
-                        const option = document.createElement('option');
-                        option.value = account.account;
-                        option.textContent = `${account.account} (${Object.keys(account.addresses).length} 种币)`;
-                        accountSelect.appendChild(option);
-                    });
-                }
-            } catch (error) {
-                console.error('加载账号列表失败:', error);
-            }
-        }
-
-        // 验证助记词
-        async function validateMnemonic() {
-            const mnemonicInput = document.getElementById('mnemonicInput');
-            const validationDiv = document.getElementById('mnemonicValidation');
-            const mnemonic = mnemonicInput.value.trim();
-
-            if (!mnemonic) {
-                validationDiv.innerHTML = '';
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/wallet/validate-mnemonic', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(mnemonic)
-                });
-
-                const result = await response.json();
-
-                if (result.success && result.data) {
-                    validationDiv.innerHTML = '<div class="validation-success"><i class="bi bi-check-circle"></i> 助记词格式正确</div>';
-                } else {
-                    validationDiv.innerHTML = '<div class="validation-error"><i class="bi bi-x-circle"></i> 助记词格式不正确</div>';
-                }
-            } catch (error) {
-                validationDiv.innerHTML = '<div class="validation-error"><i class="bi bi-x-circle"></i> 验证失败，请检查网络连接</div>';
+                help.textContent = 'ETH 地址格式：EIP-55 为校验和格式，兼容性好；原始小写为纯小写地址';
+                fmtSelect.value = 'EIP55';
             }
         }
 
@@ -720,13 +643,35 @@
         async function generateVanityAddresses() {
             const loading = document.getElementById('loading');
             const resultSection = document.getElementById('resultSection');
-            const pattern = document.getElementById('pattern').value.trim();
             const coinType = document.getElementById('coinType').value;
+            const addressFormat = document.getElementById('addressFormat').value;
             const maxResults = parseInt(document.getElementById('maxResults').value);
-            const matchType = document.getElementById('matchType').value;
+            const chkPrefix = document.getElementById('chkPrefix').checked;
+            const chkSuffix = document.getElementById('chkSuffix').checked;
+            const prefixPattern = document.getElementById('prefixPattern').value.trim();
+            const suffixPattern = document.getElementById('suffixPattern').value.trim();
 
-            if (!pattern) {
-                showError('请输入靓号规则');
+            let matchType = 'CONTAINS';
+            if (chkPrefix && chkSuffix) {
+                matchType = 'PREFIX,SUFFIX';
+            } else if (chkPrefix) {
+                matchType = 'PREFIX';
+            } else if (chkSuffix) {
+                matchType = 'SUFFIX';
+            }
+
+            // 校验：至少选择一种匹配类型
+            if (!chkPrefix && !chkSuffix) {
+                showError('请选择匹配类型（前缀/后缀）');
+                return;
+            }
+            // 校验：对应的规则不能为空
+            if (chkPrefix && !prefixPattern) {
+                showError('请输入前缀匹配规则');
+                return;
+            }
+            if (chkSuffix && !suffixPattern) {
+                showError('请输入后缀匹配规则');
                 return;
             }
 
@@ -734,49 +679,25 @@
             const matchTypeDesc = {
                 'CONTAINS': '包含匹配',
                 'PREFIX': '前缀匹配',
-                'SUFFIX': '后缀匹配'
+                'SUFFIX': '后缀匹配',
+                'PREFIX,SUFFIX': '前缀+后缀匹配'
             };
 
             loading.style.display = 'block';
             resultSection.style.display = 'none';
 
             // 更新加载提示
+            const ruleText = `${chkPrefix ? '前缀: ' + prefixPattern : ''}${chkPrefix && chkSuffix ? '，' : ''}${chkSuffix ? '后缀: ' + suffixPattern : ''}`;
             loading.innerHTML = `
-                <div class="spinner-border text-primary generating" role="status">
-                    <span class="visually-hidden">Loading...</span>
+                <div class=\"spinner-border text-primary generating\" role=\"status\">
+                    <span class=\"visually-hidden\">Loading...</span>
                 </div>
-                <h5 class="mt-3">🔥 正在生成靓号地址...</h5>
-                <p class="text-muted">模式: ${pattern} | 类型: ${matchTypeDesc[matchType]} | 币种: ${coinType}</p>
-                <div class="alert alert-info">
-                    <strong>💡 提示：</strong>靓号地址生成需要一定时间，请耐心等待。${matchType === 'PREFIX' ? '前缀' : matchType === 'SUFFIX' ? '后缀' : '包含'}匹配难度较${matchType === 'CONTAINS' ? '低' : '高'}。
+                <h5 class=\"mt-3\">🔥 正在生成靓号地址...</h5>
+                <p class=\"text-muted\">规则: ${ruleText} | 类型: ${matchTypeDesc[matchType]} | 币种: ${coinType} | 格式: ${addressFormat}</p>
+                <div class=\"alert alert-info\">
+                    <strong>💡 提示：</strong>靓号地址生成需要一定时间，请耐心等待。${matchType === 'PREFIX' ? '前缀' : matchType === 'SUFFIX' ? '后缀' : '前后缀'}匹配难度较高。
                 </div>
             `;
-
-            // 验证表单
-            const generationType = document.querySelector('input[name="generationType"]:checked').value;
-            let accountId = null;
-            let mnemonic = null;
-
-            if (generationType === 'account') {
-                accountId = document.getElementById('accountSelect').value;
-                if (!accountId) {
-                    showError('请选择账号');
-                    return;
-                }
-            } else if (generationType === 'mnemonic') {
-                mnemonic = document.getElementById('mnemonicInput').value.trim();
-                if (!mnemonic) {
-                    showError('请输入助记词');
-                    return;
-                }
-
-                // 再次验证助记词
-                const isValid = await validateMnemonicSync(mnemonic);
-                if (!isValid) {
-                    showError('助记词格式不正确，请检查后重试');
-                    return;
-                }
-            }
 
             try {
                 const response = await fetch('/api/vanity/generate', {
@@ -785,13 +706,12 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        pattern: pattern,
                         coinType: coinType,
                         maxResults: maxResults,
                         matchType: matchType,
-                        generationType: generationType,
-                        accountId: accountId,
-                        mnemonic: mnemonic
+                        addressFormat: addressFormat,
+                        prefixPattern: prefixPattern,
+                        suffixPattern: suffixPattern
                     })
                 });
 
@@ -852,9 +772,10 @@
                                         </button>
                                     </div>
                                 </div>
-                                <div class="d-flex gap-3">
+                                <div class="d-flex gap-3 flex-wrap">
                                     <small class="text-muted"><strong>币种:</strong> ${result.coinType}</small>
-                                    <small class="text-muted"><strong>匹配规则:</strong> ${result.pattern}</small>
+                                    ${result.addressFormat ? `<small class=\"text-muted\"><strong>格式:</strong> ${result.addressFormat}</small>` : ''}
+                                    ${result.pattern ? `<small class=\"text-muted\"><strong>匹配规则:</strong> ${result.pattern}</small>` : ''}
                                 </div>
                             </div>
                         </div>
