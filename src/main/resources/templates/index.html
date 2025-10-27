@@ -335,6 +335,95 @@
         .glow-animation {
             animation: glow 2s ease-in-out infinite;
         }
+
+        /* 余额查询相关样式 */
+        .balance-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 0.375rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .balance-btn:hover {
+            background: linear-gradient(135deg, #218838, #1ea085);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+        }
+
+        .balance-info {
+            background: rgba(23, 162, 184, 0.1);
+            border: 1px solid rgba(23, 162, 184, 0.2);
+            border-radius: 6px;
+            padding: 0.25rem 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .balance-text {
+            font-weight: 500;
+        }
+
+        .balance-success {
+            color: #28a745 !important;
+        }
+
+        .balance-error {
+            color: #dc3545 !important;
+        }
+
+        .balance-loading {
+            color: #17a2b8 !important;
+        }
+
+        .btn-group .btn {
+            margin-left: 0.25rem;
+        }
+
+        /* 手动测试地址区域样式 */
+        .test-balance-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .test-balance-section h5 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .input-group .form-control {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .input-group .form-control:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .input-group-text {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .form-select {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .form-select:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
     </style>
 </head>
 <body>
@@ -408,9 +497,131 @@
             <p class="text-muted">请稍候，正在从区块链同步数据</p>
         </div>
 
+        <!-- 手动测试地址余额 -->
+        <div class="test-balance-section">
+            <h5><i class="bi bi-search"></i> 手动测试地址余额</h5>
+            <div class="row">
+                <div class="col-md-5">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text"><i class="bi bi-wallet2"></i></span>
+                        <input type="text" class="form-control" id="testAddress" placeholder="输入要测试的钱包地址">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" id="testCoinType" onchange="updateNetworkOptions()">
+                        <option value="BTC">Bitcoin (BTC)</option>
+                        <option value="ETH">Ethereum (ETH)</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="testNetwork" onchange="updateNetworkInfo()">
+                        <option value="mainnet">主网 (Mainnet)</option>
+                        <option value="testnet">测试网 (Testnet)</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-web3 w-100" onclick="testAddressBalance()">
+                        <i class="bi bi-search"></i> 查询
+                    </button>
+                </div>
+            </div>
+
+            <!-- 网络配置按钮 -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <button class="btn btn-outline-primary btn-sm me-2" onclick="showNetworkConfig()">
+                        <i class="bi bi-gear"></i> 网络配置
+                    </button>
+                    <button class="btn btn-outline-success btn-sm" onclick="addCustomNetwork()">
+                        <i class="bi bi-plus-circle"></i> 添加自定义网络
+                    </button>
+                </div>
+            </div>
+
+            <div id="testResult" style="display: none;" class="mt-3">
+                <!-- 测试结果将在这里显示 -->
+            </div>
+
+            <!-- 网络信息显示 -->
+            <div class="mt-3">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle"></i>
+                    当前网络: <span id="currentNetworkInfo">加载中...</span>
+                </small>
+            </div>
+        </div>
+
         <!-- 账号列表 -->
         <div id="accountList">
             <!-- 账号列表将在这里动态生成 -->
+        </div>
+
+        <!-- 网络配置模态框 -->
+        <div class="modal fade" id="networkConfigModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-gear"></i> 网络配置</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="networkConfigContent">
+                            <!-- 网络配置内容将在这里动态生成 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 添加自定义网络模态框 -->
+        <div class="modal fade" id="customNetworkModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-plus-circle"></i> 添加自定义网络</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="customNetworkForm">
+                            <div class="mb-3">
+                                <label for="customNetworkName" class="form-label">网络名称</label>
+                                <input type="text" class="form-control" id="customNetworkName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="customNetworkDisplayName" class="form-label">显示名称</label>
+                                <input type="text" class="form-control" id="customNetworkDisplayName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="customNetworkCoinType" class="form-label">币种类型</label>
+                                <select class="form-select" id="customNetworkCoinType" required>
+                                    <option value="BTC">Bitcoin (BTC)</option>
+                                    <option value="ETH">Ethereum (ETH)</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="customNetworkApiUrl" class="form-label">API URL</label>
+                                <input type="url" class="form-control" id="customNetworkApiUrl" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="customNetworkApiKey" class="form-label">API Key (可选)</label>
+                                <input type="text" class="form-control" id="customNetworkApiKey">
+                            </div>
+                            <div class="mb-3">
+                                <label for="customNetworkExplorerUrl" class="form-label">区块浏览器 URL (可选)</label>
+                                <input type="url" class="form-control" id="customNetworkExplorerUrl">
+                            </div>
+                            <div class="mb-3">
+                                <label for="customNetworkDescription" class="form-label">描述</label>
+                                <textarea class="form-control" id="customNetworkDescription" rows="2"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" onclick="saveCustomNetwork()">保存</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -571,16 +782,28 @@
 
                 addressList.forEach((address, index) => {
                     const shortAddress = `${address.substring(0, 8)}...${address.substring(address.length - 8)}`;
+                    const balanceId = `balance-${coinType}-${index}`;
                     html += `
                         <div class="address-item">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="flex-grow-1 me-2">
                                     <code class="d-block">${address}</code>
                                     <small class="text-muted">地址 #${index + 1}</small>
+                                    <div id="${balanceId}" class="balance-info mt-1" style="display: none;">
+                                        <small class="text-info">
+                                            <i class="bi bi-currency-dollar"></i>
+                                            <span class="balance-text">查询中...</span>
+                                        </small>
+                                    </div>
                                 </div>
-                                <button class="btn copy-btn" onclick="copyToClipboard('${address}')" title="复制地址">
-                                    <i class="bi bi-clipboard"></i>
-                                </button>
+                                <div class="btn-group">
+                                    <button class="btn copy-btn" onclick="copyToClipboard('${address}')" title="复制地址">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                    <button class="btn balance-btn" onclick="queryBalance('${address}', '${coinType}', '${balanceId}')" title="查询余额">
+                                        <i class="bi bi-cash-coin"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -757,6 +980,359 @@
 
             return toast;
         }
+
+        // 查询钱包余额
+        async function queryBalance(address, coinType, balanceId) {
+            console.log('查询余额:', address, coinType, balanceId);
+
+            const balanceElement = document.getElementById(balanceId);
+            const balanceText = balanceElement.querySelector('.balance-text');
+
+            // 显示余额信息区域
+            balanceElement.style.display = 'block';
+            balanceText.textContent = '查询中...';
+            balanceText.className = 'balance-text balance-loading';
+
+            try {
+                const response = await fetch('/api/balance/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        address: address,
+                        coinType: coinType,
+                        network: getSelectedNetwork(coinType)
+                    })
+                });
+
+                const result = await response.json();
+                console.log('余额查询结果:', result);
+
+                if (result.success && result.data.success) {
+                    balanceText.textContent = result.data.balanceFormatted;
+                    balanceText.className = 'balance-text balance-success';
+                    showSuccess(`${coinType} 余额查询成功`);
+                } else {
+                    const errorMsg = result.data?.errorMessage || result.message || '查询失败';
+                    balanceText.textContent = `查询失败: ${errorMsg}`;
+                    balanceText.className = 'balance-text balance-error';
+                    showError(`余额查询失败: ${errorMsg}`);
+                }
+            } catch (error) {
+                console.error('余额查询异常:', error);
+                balanceText.textContent = '网络错误';
+                balanceText.className = 'balance-text balance-error';
+                showError('网络错误: ' + error.message);
+            }
+        }
+
+        // 手动测试地址余额查询
+        async function testAddressBalance() {
+            const address = document.getElementById('testAddress').value.trim();
+            const coinType = document.getElementById('testCoinType').value;
+
+            if (!address) {
+                showError('请输入要测试的地址');
+                return;
+            }
+
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.innerHTML = '<div class="text-info"><i class="bi bi-hourglass-split"></i> 查询中...</div>';
+            resultDiv.style.display = 'block';
+
+            try {
+                const response = await fetch('/api/balance/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        address: address,
+                        coinType: coinType,
+                        network: document.getElementById('testNetwork').value
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <h6><i class="bi bi-check-circle"></i> 查询成功</h6>
+                            <p><strong>地址:</strong> ${result.data.address}</p>
+                            <p><strong>余额:</strong> ${result.data.balanceFormatted}</p>
+                            <p><strong>网络:</strong> ${result.data.network}</p>
+                            <small class="text-muted">查询时间: ${new Date(result.data.timestamp).toLocaleString()}</small>
+                        </div>
+                    `;
+                    showSuccess('余额查询成功');
+                } else {
+                    const errorMsg = result.data?.errorMessage || result.message || '查询失败';
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h6><i class="bi bi-exclamation-triangle"></i> 查询失败</h6>
+                            <p>${errorMsg}</p>
+                        </div>
+                    `;
+                    showError('余额查询失败');
+                }
+            } catch (error) {
+                console.error('测试地址余额查询异常:', error);
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h6><i class="bi bi-wifi-off"></i> 网络错误</h6>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+                showError('网络错误');
+            }
+        }
+
+        // 网络管理功能
+        let availableNetworks = {};
+
+        // 获取选中的网络
+        function getSelectedNetwork(coinType) {
+            const networkSelect = document.getElementById('testNetwork');
+            return networkSelect ? networkSelect.value : 'mainnet';
+        }
+
+        // 更新网络选项
+        async function updateNetworkOptions() {
+            const coinType = document.getElementById('testCoinType').value;
+            const networkSelect = document.getElementById('testNetwork');
+
+            try {
+                const response = await fetch(`/api/network/${coinType}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    networkSelect.innerHTML = '';
+                    Object.entries(result.data).forEach(([key, network]) => {
+                        const option = document.createElement('option');
+                        option.value = key;
+                        option.textContent = network.displayName || network.name;
+                        networkSelect.appendChild(option);
+                    });
+
+                    // 更新网络信息显示
+                    updateNetworkInfo();
+                }
+            } catch (error) {
+                console.error('更新网络选项失败:', error);
+                // 使用默认选项
+                networkSelect.innerHTML = `
+                    <option value="mainnet">主网 (Mainnet)</option>
+                    <option value="testnet">测试网 (Testnet)</option>
+                `;
+                updateNetworkInfo();
+            }
+        }
+
+        // 更新网络信息显示
+        function updateNetworkInfo() {
+            const coinType = document.getElementById('testCoinType').value;
+            const network = document.getElementById('testNetwork').value;
+            const networkInfoSpan = document.getElementById('currentNetworkInfo');
+
+            if (availableNetworks && availableNetworks[coinType.toLowerCase()]) {
+                const networkData = availableNetworks[coinType.toLowerCase()][network];
+                if (networkData) {
+                    networkInfoSpan.innerHTML = `
+                        <strong>${networkData.displayName}</strong> |
+                        API: <code>${networkData.apiUrl}</code>
+                        ${networkData.explorerUrl ? ` | 浏览器: <a href="${networkData.explorerUrl}" target="_blank" class="text-decoration-none">${networkData.explorerUrl}</a>` : ''}
+                    `;
+                } else {
+                    networkInfoSpan.textContent = `${coinType} ${network}`;
+                }
+            } else {
+                networkInfoSpan.textContent = `${coinType} ${network}`;
+            }
+        }
+
+        // 显示网络配置
+        async function showNetworkConfig() {
+            try {
+                const response = await fetch('/api/network/available');
+                const result = await response.json();
+
+                if (result.success) {
+                    availableNetworks = result.data;
+                    renderNetworkConfig();
+                    const modal = new bootstrap.Modal(document.getElementById('networkConfigModal'));
+                    modal.show();
+                }
+            } catch (error) {
+                console.error('获取网络配置失败:', error);
+                showError('获取网络配置失败');
+            }
+        }
+
+        // 渲染网络配置
+        function renderNetworkConfig() {
+            const content = document.getElementById('networkConfigContent');
+            let html = '';
+
+            // BTC网络
+            html += '<h6 class="text-primary"><i class="bi bi-currency-bitcoin"></i> Bitcoin 网络</h6>';
+            html += '<div class="row">';
+            Object.entries(availableNetworks.btc || {}).forEach(([key, network]) => {
+                html += `
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">${network.displayName}</h6>
+                                <p class="card-text small">${network.description || ''}</p>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" ${network.enabled ? 'checked' : ''}
+                                           id="btc_${key}" onchange="toggleNetwork('btc', '${key}', this.checked)">
+                                    <label class="form-check-label" for="btc_${key}">启用</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+
+            // ETH网络
+            html += '<h6 class="text-primary mt-4"><i class="bi bi-currency-exchange"></i> Ethereum 网络</h6>';
+            html += '<div class="row">';
+            Object.entries(availableNetworks.eth || {}).forEach(([key, network]) => {
+                html += `
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">${network.displayName}</h6>
+                                <p class="card-text small">${network.description || ''}</p>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" ${network.enabled ? 'checked' : ''}
+                                           id="eth_${key}" onchange="toggleNetwork('eth', '${key}', this.checked)">
+                                    <label class="form-check-label" for="eth_${key}">启用</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+
+            // 自定义网络
+            if (availableNetworks.custom && Object.keys(availableNetworks.custom).length > 0) {
+                html += '<h6 class="text-primary mt-4"><i class="bi bi-gear"></i> 自定义网络</h6>';
+                html += '<div class="row">';
+                Object.entries(availableNetworks.custom).forEach(([key, network]) => {
+                    html += `
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title">${network.displayName}</h6>
+                                    <p class="card-text small">${network.description || ''}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" ${network.enabled ? 'checked' : ''}
+                                                   id="custom_${key}" onchange="toggleNetwork('custom', '${key}', this.checked)">
+                                            <label class="form-check-label" for="custom_${key}">启用</label>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="removeCustomNetwork('${key}')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            content.innerHTML = html;
+        }
+
+        // 切换网络状态
+        function toggleNetwork(type, key, enabled) {
+            console.log(`切换网络状态: ${type}.${key} = ${enabled}`);
+            // 这里可以添加保存网络状态的逻辑
+        }
+
+        // 添加自定义网络
+        function addCustomNetwork() {
+            const modal = new bootstrap.Modal(document.getElementById('customNetworkModal'));
+            modal.show();
+        }
+
+        // 保存自定义网络
+        async function saveCustomNetwork() {
+            const form = document.getElementById('customNetworkForm');
+            const formData = new FormData(form);
+
+            const networkData = {
+                name: document.getElementById('customNetworkName').value,
+                displayName: document.getElementById('customNetworkDisplayName').value,
+                coinType: document.getElementById('customNetworkCoinType').value,
+                apiUrl: document.getElementById('customNetworkApiUrl').value,
+                apiKey: document.getElementById('customNetworkApiKey').value,
+                explorerUrl: document.getElementById('customNetworkExplorerUrl').value,
+                description: document.getElementById('customNetworkDescription').value
+            };
+
+            try {
+                const response = await fetch('/api/network/custom', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(networkData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showSuccess('自定义网络添加成功');
+                    bootstrap.Modal.getInstance(document.getElementById('customNetworkModal')).hide();
+                    form.reset();
+                    // 刷新网络配置
+                    showNetworkConfig();
+                } else {
+                    showError('添加自定义网络失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('保存自定义网络失败:', error);
+                showError('保存自定义网络失败');
+            }
+        }
+
+        // 删除自定义网络
+        async function removeCustomNetwork(networkId) {
+            if (!confirm('确定要删除这个自定义网络吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/network/custom/${networkId}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showSuccess('自定义网络删除成功');
+                    showNetworkConfig(); // 刷新配置
+                } else {
+                    showError('删除自定义网络失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('删除自定义网络失败:', error);
+                showError('删除自定义网络失败');
+            }
+        }
+
+        // 页面加载时初始化网络选项
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNetworkOptions();
+        });
     </script>
 </body>
 </html>
