@@ -214,9 +214,19 @@ public class WalletService {
         String derivationPath = String.format("m/44'/60'/0'/0/%d", index);
 
         byte[] seed = MnemonicUtils.generateSeed(mnemonic, "");
-        ECKeyPair ecKeyPair = ECKeyPair.create(seed);
+        DeterministicKey masterKey = HDKeyDerivation.createMasterPrivateKey(seed);
 
-        // 这里简化处理，实际应该使用正确的BIP44派生
+        // 正确实现BIP44路径派生 m/44'/60'/0'/0/index
+        DeterministicKey purposeKey = HDKeyDerivation.deriveChildKey(masterKey, new ChildNumber(44, true));  // m/44'
+        DeterministicKey coinKey = HDKeyDerivation.deriveChildKey(purposeKey, new ChildNumber(60, true));    // m/44'/60'
+        DeterministicKey accountKey = HDKeyDerivation.deriveChildKey(coinKey, new ChildNumber(0, true));     // m/44'/60'/0'
+        DeterministicKey changeKey = HDKeyDerivation.deriveChildKey(accountKey, new ChildNumber(0, false));  // m/44'/60'/0'/0
+        DeterministicKey addressKey = HDKeyDerivation.deriveChildKey(changeKey, new ChildNumber(index, false)); // m/44'/60'/0'/0/index
+
+        // 从派生的私钥创建ECKeyPair
+        BigInteger privateKeyBigInt = addressKey.getPrivKey();
+        ECKeyPair ecKeyPair = ECKeyPair.create(privateKeyBigInt);
+
         String address = Keys.getAddress(ecKeyPair);
         String privateKeyHex = Numeric.toHexString(ecKeyPair.getPrivateKey().toByteArray());
         String publicKeyHex = Numeric.toHexString(ecKeyPair.getPublicKey().toByteArray());

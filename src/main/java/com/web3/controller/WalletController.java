@@ -1,10 +1,12 @@
 package com.web3.controller;
 
-import com.web3.dto.*;
+import com.web3.dto.ApiResponse;
+import com.web3.dto.MnemonicGenerateRequest;
+import com.web3.dto.WalletGenerateRequest;
+import com.web3.dto.WalletInfo;
 import com.web3.service.WalletService;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
