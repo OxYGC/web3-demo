@@ -20,7 +20,7 @@ public abstract class AbstractBlockScanner {
     protected final Web3j web3j;
 
     @Autowired
-    BlockProgressService blockProgressService;
+    protected BlockProgressService blockProgressService;
 
 
 
@@ -67,7 +67,6 @@ public abstract class AbstractBlockScanner {
     public AbstractBlockScanner(ChainConfig config) {
         this.chainConfig = config;
         this.web3j = Web3j.build(new HttpService(config.getRpcUrl()));
-        this.blockProgressService = blockProgressService;
     }
 
 
@@ -81,10 +80,8 @@ public abstract class AbstractBlockScanner {
 
     // 获取当前块高
     protected Long getCurrentBlockNumber() {
-        /* todo 🔗调用 eth_blockNumber
-        *
-        *   */
-        return 0L;
+        // 模拟：从进度服务读取当前链头（无需真实 RPC）
+        return blockProgressService.getCurrentHead(chainConfig.getChainId());
     }
 
 //    protected TransactionReceipt getReceipt(String txHash) {

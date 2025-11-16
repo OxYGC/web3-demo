@@ -11,7 +11,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/test")
 @Slf4j
-@CrossOrigin(origins = "*")
 public class TestController {
 
     @GetMapping("/ping")
