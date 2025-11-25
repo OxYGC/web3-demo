@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.web3.entity.dto.btc.*;
 import com.web3.entity.vo.*;
 import com.web3.enums.SignAlgorithm;
+import com.web3.config.NetworkConfig;
 import com.web3.service.BtcWalletService;
 import com.web3.service.btc.KeyStoreService;
 import com.web3.service.btc.SignService;
@@ -14,11 +15,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 比特币支持的相关算饭
@@ -34,6 +38,10 @@ public class BtcController {
     private SignerService signerService;
     @Resource
     private BtcWalletService btcWalletService;
+    @Resource
+    private RestTemplate restTemplate;
+    @Resource
+    private NetworkConfig networkConfig;
 
 
     /**
@@ -47,6 +55,70 @@ public class BtcController {
                 SignAlgorithm.ECDSA.getCode()  // 可以改成动态返回多个算法
         );
         return ResponseEntity.ok(response);
+    }
+
+
+    /**
+     * 获取比特币最新区块信息
+     *
+     * 优先从配置中读取对应网络的区块链服务地址（application-*.yml 的 blockchain.networks.btc）
+     * 目前默认适配 BlockCypher：
+     *   1) 先请求 {apiUrl} 获取 latest_url
+     *   2) 再请求 latest_url 获取最新区块详情
+     *
+     * @param network 网络标识：mainnet/testnet，默认 mainnet
+     */
+    @GetMapping("/latest-block")
+    public ResponseEntity<?> getLatestBlock(@RequestParam(name = "network", defaultValue = "mainnet") String network) {
+        NetworkConfig.NetworkInfo net = networkConfig.getBtcNetwork(network);
+        if (net == null || !net.isEnabled()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of(
+                            "code", "FAIL",
+                            "message", "不支持的或未启用的BTC网络: " + network
+                    ));
+        }
+
+        try {
+            String apiUrl = net.getApiUrl();
+            // 1. 获取链状态，包含 latest_url
+            Map<?, ?> chainInfo = restTemplate.getForObject(apiUrl, Map.class);
+            if (chainInfo == null) {
+                return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                        .body(Map.of("code", "FAIL", "message", "获取链信息失败"));
+            }
+
+            Object latestUrlObj = chainInfo.get("latest_url");
+            if (latestUrlObj == null) {
+                // 回退：直接返回链信息（通常包含最新高度 latest_height）
+                return ResponseEntity.ok(chainInfo);
+            }
+
+            String latestUrl = latestUrlObj.toString();
+            String fullLatestUrl;
+            if (latestUrl.startsWith("http://") || latestUrl.startsWith("https://")) {
+                fullLatestUrl = latestUrl;
+            } else {
+                // 拼接协议与域名
+                URI base = URI.create(apiUrl);
+                fullLatestUrl = base.getScheme() + "://" + base.getHost() + latestUrl;
+            }
+
+            // 2. 获取最新区块详情
+            Map<?, ?> latestBlock = restTemplate.getForObject(fullLatestUrl, Map.class);
+            if (latestBlock == null) {
+                return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                        .body(Map.of("code", "FAIL", "message", "获取最新区块失败"));
+            }
+            return ResponseEntity.ok(latestBlock);
+        } catch (Exception e) {
+            log.error("获取最新区块异常", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "code", "ERROR",
+                            "message", "获取最新区块发生异常: " + e.getMessage()
+                    ));
+        }
     }
 
     /**
