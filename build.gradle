@@ -50,6 +50,7 @@ dependencies {
     implementation 'org.bitcoinj:bitcoinj-core:0.16.2'
 
     implementation 'org.bitcoindevkit:bdk-jvm:0.28.0'
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.78'
 
 }
 
