@@ -64,7 +64,7 @@ public final class ECDSASign {
         /**
          * r 来自 k·G 的 x 坐标(固定)
          * s ≡ k⁻¹ (hash + r·d) (mod n)： 由于模运算的天然对称性，所以s会有两个值
-         * 就像：+5 ≡ -5 (mod 10)
+         * 就像：+5 ≡ -5 (mod 10) 注意: 这里跟几何Y轴没有关系，很多同学会搞混这里
          */
         // Ethereum / Bitcoin 通用的 low-s 规范
         BigInteger r = sig[0];
