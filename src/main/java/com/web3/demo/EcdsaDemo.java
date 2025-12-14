@@ -40,6 +40,18 @@ public class EcdsaDemo {
         System.out.println("Signature valid: " + ok);
     }
 
+
+    /**
+     * 打印结果:
+     * Private Key (hex): 0xe5e955cce462b8dd039fdbf1c252b93863f63c5af605e49a4a6126281773f65b
+     * Public Key  (uncompressed): 0x0404ee8ffcb38a44a587bc190b446e5b03af93c9243f9c179b6a0d7231511ca3361bd996a78bee88154dac696c3de34756b1c71fa28b626a0947050c117f93baf1
+     * r: f2d360dbf3293fb3c732ad9bafb1c5d51830a8c45b83960b96243d23b5ef22c6 s: 27f69bcbef35c95a520360d09f2df006888491928f5e2906052031b7a074e076
+     * Signature valid: true
+     */
+
+
+
+
     /**
      * 同一个公钥，可以有这些表示方式：
      *      - keccak256(pubkey)[12:] 未压缩：65 bytes ，04 + X + Y
