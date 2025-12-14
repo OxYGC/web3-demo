@@ -40,7 +40,18 @@ public class EcdsaDemo {
         System.out.println("Signature valid: " + ok);
     }
 
-
+    /**
+     * 同一个公钥，可以有这些表示方式：
+     *      - keccak256(pubkey)[12:] 未压缩：65 bytes ，04 + X + Y
+     *      - 压缩：33 bytes，02/03 + X
+     *      - 去 04：64 bytes ，X + Y
+     *      - Ethereum 地址：20 bytes，keccak256(pubkey)[12:]
+     * 对公钥做一次 Keccak256 哈希，然后取最后 20 个字节，作为以太坊地址。
+     * 同一个公钥，如果表示不统一，会直接出安全事故。
+     *
+     * @param privKey
+     * @param pubKey
+     */
     public static void printKey(BigInteger privKey,ECPoint pubKey){
         // 1. 私钥 hex（32字节）
         String privKeyHex = privKey.toString(16);
