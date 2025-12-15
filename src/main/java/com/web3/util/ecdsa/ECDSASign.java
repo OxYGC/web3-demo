@@ -42,7 +42,8 @@ public final class ECDSASign {
             throw new IllegalArgumentException("privateKey is null");
         }
 
-        // 使用 RFC6979，避免随机数攻击：RFC6979 的核心思想是：不要相信随机数，直接用数学确定性算法生成 k。
+        // 使用 RFC6979，避免随机数攻击：RFC6979 的核心思想是：不要相信随机数，直接用数学确定性算法生成 k。RFC6979 deterministic k (no RNG)
+        // 直接理解：K依然存在，只是你不用管这个K的值了，RFC6979用自己的方案给你托管随机K这个问题了, 相当于给Ecdsa打个补丁.
         /**
          * 历史上，大量加密货币被盗，不是因为算法弱，而是因为随机数出错。
          * ECDSA 的“致命点”ECDSA 每次签名都需要一个随机数 k：
@@ -53,6 +54,16 @@ public final class ECDSASign {
         ECDSASigner signer = new ECDSASigner(
                 new HMacDSAKCalculator(new SHA256Digest())
         );
+
+        /**
+         * RNG = Random Number Generator（随机数生成器）
+         * error show:
+         * k的值是：new SecureRandom()
+         * 这个写法是有风险的，并不是说严格意义的错误，但是ps3的那次事件是把这里new SecureRandom()换成了一个常量
+         */
+//        ECDSASigner signerError = new ECDSASigner();
+//        signerError.init(true, new ParametersWithRandom(new ECPrivateKeyParameters(privateKey, DOMAIN), new SecureRandom())
+//        );
 
         signer.init(
                 true,
