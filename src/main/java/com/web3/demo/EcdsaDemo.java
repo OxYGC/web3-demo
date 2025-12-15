@@ -53,6 +53,8 @@ public class EcdsaDemo {
 
 
     /**
+     * 打印生成的公私钥
+     *
      * 同一个公钥，可以有这些表示方式：
      *      - keccak256(pubkey)[12:] 未压缩：65 bytes ，04 + X + Y
      *      - 压缩：33 bytes，02/03 + X
