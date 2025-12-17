@@ -5,6 +5,15 @@ import java.util.List;
 import java.util.ArrayList;
 import org.bouncycastle.math.ec.ECPoint;
 
+/**
+ * 这里模拟了:
+ * 节点的私钥ri以及
+ * 公钥 pk = r1×G + r2×G + r3×G
+ * (下面的步骤从来没有在MPC节点中进行,仅测试使用,生产需要去掉)
+ * 私钥聚合对比 sk = r1 + r2 + r3
+ * pk = sk x G (主要用到了 sk = r1 + r2 + r3)
+ * 对比上面的公钥pk
+ */
 public class MPCDemo {
 
     public static void main(String[] args) {
