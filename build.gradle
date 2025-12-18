@@ -51,7 +51,7 @@ dependencies {
 
     implementation 'org.bitcoindevkit:bdk-jvm:0.28.0'
     implementation 'org.bouncycastle:bcprov-jdk18on:1.78'
-
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.78'
 }
 
 tasks.named('test') {
