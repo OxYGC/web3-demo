@@ -1,0 +1,85 @@
+spring:
+  docker:
+    compose:
+      enabled: false
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    driver-class-name: org.h2.Driver
+    #H2内存数据库
+    #    url: jdbc:h2:mem:moon
+    #本地持久化数据库
+    url: jdbc:h2:./data/web3-demo-db
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      #初次启动时使用 create-drop，会自动创建表结构
+      #      ddl-auto: create-drop
+      # DB 运行后改为 update 模式(只更新表结构不清数据)
+      ddl-auto: update
+
+web3j:
+  # 本地 Ganache 或 Infura/Alchemy 节点
+  #  client-address: http://127.0.0.1:8545
+  client-address: http://127.0.0.1:7545
+
+# 区块链网络配置
+blockchain:
+  networks:
+    btc:
+      mainnet:
+        name: "mainnet"
+        displayName: "比特币主网"
+        apiUrl: "https://api.blockcypher.com/v1/btc/main"
+        explorerUrl: "https://blockstream.info"
+        description: "比特币主网络"
+        enabled: true
+      testnet:
+        name: "testnet"
+        displayName: "比特币测试网"
+        apiUrl: "https://api.blockcypher.com/v1/btc/test3"
+        explorerUrl: "https://blockstream.info/testnet"
+        description: "比特币测试网络"
+        enabled: true
+      regtest:
+        name: "regtest"
+        displayName: "比特币回归测试网"
+        apiUrl: "http://localhost:18443"
+        explorerUrl: "http://localhost:3001"
+        description: "本地比特币测试网络"
+        enabled: false
+    eth:
+      mainnet:
+        name: "mainnet"
+        displayName: "以太坊主网"
+        apiUrl: "https://api.etherscan.io/api"
+        apiKey: "YourEtherscanApiKey"
+        explorerUrl: "https://etherscan.io"
+        description: "以太坊主网络"
+        enabled: true
+      goerli:
+        name: "goerli"
+        displayName: "Goerli测试网"
+        apiUrl: "https://api-goerli.etherscan.io/api"
+        apiKey: "YourEtherscanApiKey"
+        explorerUrl: "https://goerli.etherscan.io"
+        description: "以太坊Goerli测试网络"
+        enabled: true
+      sepolia:
+        name: "sepolia"
+        displayName: "Sepolia测试网"
+        apiUrl: "https://api-sepolia.etherscan.io/api"
+        apiKey: "YourEtherscanApiKey"
+        explorerUrl: "https://sepolia.etherscan.io"
+        description: "以太坊Sepolia测试网络"
+        enabled: true
+      polygon:
+        name: "polygon"
+        displayName: "Polygon主网"
+        apiUrl: "https://api.polygonscan.com/api"
+        apiKey: "YourPolygonscanApiKey"
+        explorerUrl: "https://polygonscan.com"
+        description: "Polygon网络"
+        enabled: false
+    custom: {}

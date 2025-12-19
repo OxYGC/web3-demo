@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>测试页面</h1>
+    <div class="success">
+        <h3>✅ 恭喜！模板引擎工作正常</h3>
+        <p>如果您能看到这个页面，说明Thymeleaf模板引擎已经正确配置。</p>
+    </div>
+
+    <h2>快速导航</h2>
+    <ul>
+        <li><a href="/">返回主页</a></li>
+        <li><a href="/vanity">靓号生成</a></li>
+        <li><a href="/h2-console">H2数据库控制台</a></li>
+    </ul>
+
+    <h2>系统信息</h2>
+    <p>当前时间: <span id="time"></span></p>
+
+    <script>
+        document.getElementById('time').textContent = new Date().toLocaleString('zh-CN');
+    </script>
+</body>
+</html>

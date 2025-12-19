@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Web3 Wallet System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --dark-bg: #0f0f23;
+            --card-bg: #1a1a2e;
+            --border-color: #16213e;
+            --text-primary: #e94560;
+            --text-secondary: #a0a3bd;
+            --accent-color: #00d4ff;
+        }
+
+        body {
+            background: var(--dark-bg);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: var(--primary-gradient) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: linear-gradient(45deg, #fff, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .container {
+            max-width: 1200px;
+        }
+
+        .hero-section {
+            padding: 2rem 0;
+            text-align: center;
+            background: radial-gradient(ellipse at center, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+        }
+
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .hero-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn-web3 {
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-web3:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+            color: white;
+        }
+
+        .btn-secondary-web3 {
+            background: var(--secondary-gradient);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
+        }
+
+        .btn-secondary-web3:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(240, 147, 251, 0.6);
+            color: white;
+        }
+
+        .account-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .account-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.2);
+            border-color: var(--accent-color);
+        }
+
+        .account-header {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .account-header:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+        }
+
+        .account-body {
+            padding: 20px;
+        }
+
+        .address-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .address-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent-color);
+            transform: translateX(5px);
+        }
+
+        .coin-section {
+            margin-bottom: 24px;
+        }
+
+        .coin-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--accent-color);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .coin-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--success-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .copy-btn {
+            background: var(--success-gradient);
+            border: none;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .loading {
+            display: none;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 3rem;
+            text-align: center;
+        }
+
+        .spinner-border {
+            color: var(--accent-color);
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        }
+
+        .modal-title {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: #ffffff;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.25rem rgba(0, 212, 255, 0.25);
+            color: #ffffff;
+        }
+
+        .form-control::placeholder {
+            color: var(--text-secondary) !important;
+        }
+
+        .form-label {
+            color: #ffffff !important;
+            font-weight: 500;
+        }
+
+        code {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--accent-color) !important;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .text-muted {
+            color: var(--text-secondary) !important;
+        }
+
+        .small, small {
+            color: var(--text-secondary) !important;
+        }
+
+        label {
+            color: #ffffff !important;
+        }
+
+        .modal-body label {
+            color: #ffffff !important;
+        }
+
+        .modal-body .form-text {
+            color: var(--text-secondary) !important;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: #ffffff !important;
+        }
+
+        p {
+            color: #ffffff !important;
+        }
+
+        .alert {
+            border-radius: 12px;
+            border: none;
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.2), rgba(255, 152, 0, 0.2));
+            color: #ffc107;
+            border-left: 4px solid #ffc107;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.2), rgba(0, 242, 254, 0.2));
+            color: var(--accent-color);
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .stats-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .stats-number {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stats-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px var(--accent-color); }
+            50% { box-shadow: 0 0 20px var(--accent-color); }
+            100% { box-shadow: 0 0 5px var(--accent-color); }
+        }
+
+        .glow-animation {
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        /* 余额查询相关样式 */
+        .balance-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 0.375rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .balance-btn:hover {
+            background: linear-gradient(135deg, #218838, #1ea085);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+        }
+
+        .balance-info {
+            background: rgba(23, 162, 184, 0.1);
+            border: 1px solid rgba(23, 162, 184, 0.2);
+            border-radius: 6px;
+            padding: 0.25rem 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .balance-text {
+            font-weight: 500;
+        }
+
+        .balance-success {
+            color: #28a745 !important;
+        }
+
+        .balance-error {
+            color: #dc3545 !important;
+        }
+
+        .balance-loading {
+            color: #17a2b8 !important;
+        }
+
+        .btn-group .btn {
+            margin-left: 0.25rem;
+        }
+
+        /* 手动测试地址区域样式 */
+        .test-balance-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .test-balance-section h5 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .input-group .form-control {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .input-group .form-control:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .input-group-text {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .form-select {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .form-select:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-wallet2"></i> Web3 Wallet System
+            </a>
+            <div class="navbar-nav">
+                <a class="nav-link active" href="/">
+                    <i class="bi bi-house"></i> 钱包管理
+                </a>
+                <a class="nav-link" href="/vanity">
+                    <i class="bi bi-lightning-charge"></i> 靓号生成
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container">
+            <h1 class="hero-title">🚀 Web3 钱包管理中心</h1>
+            <p class="hero-subtitle">安全生成和管理您的多链钱包地址</p>
+
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stats-number" id="totalAccounts">0</div>
+                        <div class="stats-label">总账号数</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stats-number" id="totalAddresses">0</div>
+                        <div class="stats-label">总地址数</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stats-number" id="supportedChains">3</div>
+                        <div class="stats-label">支持链数</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stats-number" id="vanityCount">0</div>
+                        <div class="stats-label">靓号地址</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-center gap-3 mb-4">
+                <button class="btn btn-web3" onclick="createAccount('mnemonic')">
+                    <i class="bi bi-plus-circle"></i> 生成助记词钱包
+                </button>
+                <button class="btn btn-secondary-web3" onclick="createAccount('privatekey')">
+                    <i class="bi bi-key"></i> 生成私钥钱包
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 加载状态 -->
+        <div id="loading" class="loading">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <h5 class="mt-3">正在加载钱包数据...</h5>
+            <p class="text-muted">请稍候，正在从区块链同步数据</p>
+        </div>
+
+        <!-- 手动测试地址余额 -->
+        <div class="test-balance-section">
+            <h5><i class="bi bi-search"></i> 手动测试地址余额</h5>
+            <div class="row">
+                <div class="col-md-5">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text"><i class="bi bi-wallet2"></i></span>
+                        <input type="text" class="form-control" id="testAddress" placeholder="输入要测试的钱包地址">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" id="testCoinType" onchange="updateNetworkOptions()">
+                        <option value="BTC">Bitcoin (BTC)</option>
+                        <option value="ETH">Ethereum (ETH)</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="testNetwork" onchange="updateNetworkInfo()">
+                        <option value="mainnet">主网 (Mainnet)</option>
+                        <option value="testnet">测试网 (Testnet)</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-web3 w-100" onclick="testAddressBalance()">
+                        <i class="bi bi-search"></i> 查询
+                    </button>
+                </div>
+            </div>
+
+            <!-- 网络配置按钮 -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <button class="btn btn-outline-primary btn-sm me-2" onclick="showNetworkConfig()">
+                        <i class="bi bi-gear"></i> 网络配置
+                    </button>
+                    <button class="btn btn-outline-success btn-sm" onclick="addCustomNetwork()">
+                        <i class="bi bi-plus-circle"></i> 添加自定义网络
+                    </button>
+                </div>
+            </div>
+
+            <div id="testResult" style="display: none;" class="mt-3">
+                <!-- 测试结果将在这里显示 -->
+            </div>
+
+            <!-- 网络信息显示 -->
+            <div class="mt-3">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle"></i>
+                    当前网络: <span id="currentNetworkInfo">加载中...</span>
+                </small>
+            </div>
+        </div>
+
+        <!-- 账号列表 -->
+        <div id="accountList">
+            <!-- 账号列表将在这里动态生成 -->
+        </div>
+
+        <!-- 网络配置模态框 -->
+        <div class="modal fade" id="networkConfigModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-gear"></i> 网络配置</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="networkConfigContent">
+                            <!-- 网络配置内容将在这里动态生成 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 添加自定义网络模态框 -->
+        <div class="modal fade" id="customNetworkModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-plus-circle"></i> 添加自定义网络</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="customNetworkForm">
+                            <div class="mb-3">
+                                <label for="customNetworkName" class="form-label">网络名称</label>
+                                <input type="text" class="form-control" id="customNetworkName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="customNetworkDisplayName" class="form-label">显示名称</label>
+                                <input type="text" class="form-control" id="customNetworkDisplayName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="customNetworkCoinType" class="form-label">币种类型</label>
+                                <select class="form-select" id="customNetworkCoinType" required>
+                                    <option value="BTC">Bitcoin (BTC)</option>
+                                    <option value="ETH">Ethereum (ETH)</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="customNetworkApiUrl" class="form-label">API URL</label>
+                                <input type="url" class="form-control" id="customNetworkApiUrl" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="customNetworkApiKey" class="form-label">API Key (可选)</label>
+                                <input type="text" class="form-control" id="customNetworkApiKey">
+                            </div>
+                            <div class="mb-3">
+                                <label for="customNetworkExplorerUrl" class="form-label">区块浏览器 URL (可选)</label>
+                                <input type="url" class="form-control" id="customNetworkExplorerUrl">
+                            </div>
+                            <div class="mb-3">
+                                <label for="customNetworkDescription" class="form-label">描述</label>
+                                <textarea class="form-control" id="customNetworkDescription" rows="2"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" onclick="saveCustomNetwork()">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 账号创建成功模态框 -->
+    <div class="modal fade" id="accountModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">账号创建成功</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <strong>重要提示：</strong>请务必保存以下信息，关闭窗口后将无法再次查看！
+                    </div>
+                    <div id="accountInfo">
+                        <!-- 账号信息将在这里显示 -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">我已保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 页面加载时获取账号列表
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAccounts();
+        });
+
+        // 加载账号列表
+        async function loadAccounts() {
+            const loading = document.getElementById('loading');
+            const accountList = document.getElementById('accountList');
+
+            loading.style.display = 'block';
+            accountList.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/accounts');
+                const result = await response.json();
+
+                if (result.success) {
+                    renderAccounts(result.data);
+                } else {
+                    showError('获取账号列表失败: ' + result.message);
+                }
+            } catch (error) {
+                showError('网络错误: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // 渲染账号列表
+        function renderAccounts(accounts) {
+            const accountList = document.getElementById('accountList');
+
+            // 更新统计数据
+            updateStats(accounts);
+
+            if (accounts.length === 0) {
+                accountList.innerHTML = `
+                    <div class="alert alert-info">
+                        <h5><i class="bi bi-info-circle"></i> 欢迎使用 Web3 钱包系统</h5>
+                        <p>您还没有创建任何钱包，点击上方按钮开始创建您的第一个钱包</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            accounts.forEach((account, index) => {
+                const collapseId = `collapse-${index}`;
+                const addressCount = Object.values(account.addresses).reduce((sum, addrs) => sum + addrs.length, 0);
+
+                html += `
+                    <div class="account-card">
+                        <div class="account-header" data-bs-toggle="collapse" data-bs-target="#${collapseId}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-1">
+                                        <i class="bi bi-wallet2"></i> ${account.account}
+                                    </h5>
+                                    <small class="text-muted">
+                                        <i class="bi bi-collection"></i> ${addressCount} 个地址
+                                        <i class="bi bi-clock ms-2"></i> ID: ${account.account.substring(0, 8)}...
+                                    </small>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); deleteAccount('${account.account}')" title="删除钱包">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                    <i class="bi bi-chevron-down"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="collapse" id="${collapseId}">
+                            <div class="account-body">
+                                ${renderAddresses(account.addresses)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            accountList.innerHTML = html;
+        }
+
+        // 更新统计数据
+        function updateStats(accounts) {
+            const totalAccounts = accounts.length;
+            let totalAddresses = 0;
+
+            accounts.forEach(account => {
+                Object.values(account.addresses).forEach(addrs => {
+                    totalAddresses += addrs.length;
+                });
+            });
+
+            document.getElementById('totalAccounts').textContent = totalAccounts;
+            document.getElementById('totalAddresses').textContent = totalAddresses;
+
+            // 获取靓号地址数量
+            // updateVanityCount();
+        }
+
+        // 更新靓号地址统计
+        async function updateVanityCount() {
+            try {
+                const response = await fetch('/api/vanity/list');
+                const result = await response.json();
+                if (result.success) {
+                    document.getElementById('vanityCount').textContent = result.data.length;
+                }
+            } catch (error) {
+                console.error('获取靓号地址统计失败:', error);
+            }
+        }
+
+        // 渲染地址列表
+        function renderAddresses(addresses) {
+            let html = '';
+
+            for (const [coinType, addressList] of Object.entries(addresses)) {
+                const coinIcon = getCoinIcon(coinType);
+                html += `
+                    <div class="coin-section">
+                        <div class="coin-title">
+                            <div class="coin-icon">${coinIcon}</div>
+                            <span>${coinType}</span>
+                            <span class="badge bg-secondary ms-2">${addressList.length}</span>
+                        </div>
+                `;
+
+                addressList.forEach((address, index) => {
+                    const shortAddress = `${address.substring(0, 8)}...${address.substring(address.length - 8)}`;
+                    const balanceId = `balance-${coinType}-${index}`;
+                    html += `
+                        <div class="address-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="flex-grow-1 me-2">
+                                    <code class="d-block">${address}</code>
+                                    <small class="text-muted">地址 #${index + 1}</small>
+                                    <div id="${balanceId}" class="balance-info mt-1" style="display: none;">
+                                        <small class="text-info">
+                                            <i class="bi bi-currency-dollar"></i>
+                                            <span class="balance-text">查询中...</span>
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="btn-group">
+                                    <button class="btn copy-btn" onclick="copyToClipboard('${address}')" title="复制地址">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                    <button class="btn balance-btn" onclick="queryBalance('${address}', '${coinType}', '${balanceId}')" title="查询余额">
+                                        <i class="bi bi-cash-coin"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+            }
+
+            return html || '<div class="alert alert-info"><i class="bi bi-info-circle"></i> 暂无地址数据</div>';
+        }
+
+        // 获取币种图标
+        function getCoinIcon(coinType) {
+            const icons = {
+                'BTC': '₿',
+                'ETH': 'Ξ',
+                'SOL': '◎',
+                'LTC': 'Ł',
+                'BNB': 'B'
+            };
+
+            return icons[coinType] || coinType;
+        }
+
+        // 删除账号
+        async function deleteAccount(accountId) {
+            if (!confirm(`确认删除钱包 ${accountId} 吗？此操作不可恢复！`)) {
+                return;
+            }
+            try {
+                const response = await fetch(`/api/accounts/${accountId}`, { method: 'DELETE' });
+                const result = await response.json();
+                if (result.success) {
+                    showSuccess('钱包已删除');
+                    loadAccounts();
+                } else {
+                    showError('删除失败: ' + result.message);
+                }
+            } catch (e) {
+                showError('网络错误: ' + e.message);
+            }
+        }
+
+        // 创建账号
+        async function createAccount(type) {
+            const endpoint = type === 'mnemonic' ? '/api/accounts/create-mnemonic' : '/api/accounts/create-privatekey';
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAccountInfo(result.data);
+                    // 延迟刷新账号列表
+                    setTimeout(() => {
+                        loadAccounts();
+                    }, 1000);
+                } else {
+                    showError('创建账号失败: ' + result.message);
+                }
+            } catch (error) {
+                showError('网络错误: ' + error.message);
+            }
+        }
+
+        // 显示账号信息
+        function showAccountInfo(accountData) {
+            const accountInfo = document.getElementById('accountInfo');
+            let html = `
+                <div class="mb-3">
+                    <label class="form-label"><strong>账号ID:</strong></label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" value="${accountData.accountId}" readonly>
+                        <button class="btn btn-outline-primary" onclick="copyToClipboard('${accountData.accountId}')">复制</button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><strong>账号名称:</strong></label>
+                    <input type="text" class="form-control" value="${accountData.accountName}" readonly>
+                </div>
+            `;
+
+            if (accountData.mnemonic) {
+                html += `
+                    <div class="mb-3">
+                        <label class="form-label"><strong>助记词:</strong></label>
+                        <div class="input-group">
+                            <textarea class="form-control" rows="3" readonly>${accountData.mnemonic}</textarea>
+                            <button class="btn btn-outline-primary" onclick="copyToClipboard('${accountData.mnemonic}')">复制</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (accountData.privateKey) {
+                html += `
+                    <div class="mb-3">
+                        <label class="form-label"><strong>私钥:</strong></label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="${accountData.privateKey}" readonly>
+                            <button class="btn btn-outline-primary" onclick="copyToClipboard('${accountData.privateKey}')">复制</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            accountInfo.innerHTML = html;
+
+            const modal = new bootstrap.Modal(document.getElementById('accountModal'));
+            modal.show();
+        }
+
+        // 复制到剪贴板
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                showSuccess('已复制到剪贴板');
+            } catch (error) {
+                // 兜底方案
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showSuccess('已复制到剪贴板');
+            }
+        }
+
+        // 显示成功消息
+        function showSuccess(message) {
+            const toast = createToast('success', message);
+            document.body.appendChild(toast);
+        }
+
+        // 显示错误消息
+        function showError(message) {
+            const toast = createToast('danger', message);
+            document.body.appendChild(toast);
+        }
+
+        // 创建Toast通知
+        function createToast(type, message) {
+            const toastHtml = `
+                <div class="toast align-items-center text-white bg-${type} border-0" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `;
+
+            const toastElement = document.createElement('div');
+            toastElement.innerHTML = toastHtml;
+            const toast = toastElement.firstElementChild;
+
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+
+            // 3秒后自动移除
+            setTimeout(() => {
+                if (document.body.contains(toast)) {
+                    document.body.removeChild(toast);
+                }
+            }, 3000);
+
+            return toast;
+        }
+
+        // 查询钱包余额
+        async function queryBalance(address, coinType, balanceId) {
+            console.log('查询余额:', address, coinType, balanceId);
+
+            const balanceElement = document.getElementById(balanceId);
+            const balanceText = balanceElement.querySelector('.balance-text');
+
+            // 显示余额信息区域
+            balanceElement.style.display = 'block';
+            balanceText.textContent = '查询中...';
+            balanceText.className = 'balance-text balance-loading';
+
+            try {
+                const response = await fetch('/api/balance/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        address: address,
+                        coinType: coinType,
+                        network: getSelectedNetwork(coinType)
+                    })
+                });
+
+                const result = await response.json();
+                console.log('余额查询结果:', result);
+
+                if (result.success && result.data.success) {
+                    balanceText.textContent = result.data.balanceFormatted;
+                    balanceText.className = 'balance-text balance-success';
+                    showSuccess(`${coinType} 余额查询成功`);
+                } else {
+                    const errorMsg = result.data?.errorMessage || result.message || '查询失败';
+                    balanceText.textContent = `查询失败: ${errorMsg}`;
+                    balanceText.className = 'balance-text balance-error';
+                    showError(`余额查询失败: ${errorMsg}`);
+                }
+            } catch (error) {
+                console.error('余额查询异常:', error);
+                balanceText.textContent = '网络错误';
+                balanceText.className = 'balance-text balance-error';
+                showError('网络错误: ' + error.message);
+            }
+        }
+
+        // 手动测试地址余额查询
+        async function testAddressBalance() {
+            const address = document.getElementById('testAddress').value.trim();
+            const coinType = document.getElementById('testCoinType').value;
+
+            if (!address) {
+                showError('请输入要测试的地址');
+                return;
+            }
+
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.innerHTML = '<div class="text-info"><i class="bi bi-hourglass-split"></i> 查询中...</div>';
+            resultDiv.style.display = 'block';
+
+            try {
+                const response = await fetch('/api/balance/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        address: address,
+                        coinType: coinType,
+                        network: document.getElementById('testNetwork').value
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <h6><i class="bi bi-check-circle"></i> 查询成功</h6>
+                            <p><strong>地址:</strong> ${result.data.address}</p>
+                            <p><strong>余额:</strong> ${result.data.balanceFormatted}</p>
+                            <p><strong>网络:</strong> ${result.data.network}</p>
+                            <small class="text-muted">查询时间: ${new Date(result.data.timestamp).toLocaleString()}</small>
+                        </div>
+                    `;
+                    showSuccess('余额查询成功');
+                } else {
+                    const errorMsg = result.data?.errorMessage || result.message || '查询失败';
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h6><i class="bi bi-exclamation-triangle"></i> 查询失败</h6>
+                            <p>${errorMsg}</p>
+                        </div>
+                    `;
+                    showError('余额查询失败');
+                }
+            } catch (error) {
+                console.error('测试地址余额查询异常:', error);
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h6><i class="bi bi-wifi-off"></i> 网络错误</h6>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+                showError('网络错误');
+            }
+        }
+
+        // 网络管理功能
+        let availableNetworks = {};
+
+        // 获取选中的网络
+        function getSelectedNetwork(coinType) {
+            const networkSelect = document.getElementById('testNetwork');
+            return networkSelect ? networkSelect.value : 'mainnet';
+        }
+
+        // 更新网络选项
+        async function updateNetworkOptions() {
+            const coinType = document.getElementById('testCoinType').value;
+            const networkSelect = document.getElementById('testNetwork');
+
+            try {
+                const response = await fetch(`/api/network/${coinType}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    networkSelect.innerHTML = '';
+                    Object.entries(result.data).forEach(([key, network]) => {
+                        const option = document.createElement('option');
+                        option.value = key;
+                        option.textContent = network.displayName || network.name;
+                        networkSelect.appendChild(option);
+                    });
+
+                    // 更新网络信息显示
+                    updateNetworkInfo();
+                }
+            } catch (error) {
+                console.error('更新网络选项失败:', error);
+                // 使用默认选项
+                networkSelect.innerHTML = `
+                    <option value="mainnet">主网 (Mainnet)</option>
+                    <option value="testnet">测试网 (Testnet)</option>
+                `;
+                updateNetworkInfo();
+            }
+        }
+
+        // 更新网络信息显示
+        function updateNetworkInfo() {
+            const coinType = document.getElementById('testCoinType').value;
+            const network = document.getElementById('testNetwork').value;
+            const networkInfoSpan = document.getElementById('currentNetworkInfo');
+
+            if (availableNetworks && availableNetworks[coinType.toLowerCase()]) {
+                const networkData = availableNetworks[coinType.toLowerCase()][network];
+                if (networkData) {
+                    networkInfoSpan.innerHTML = `
+                        <strong>${networkData.displayName}</strong> |
+                        API: <code>${networkData.apiUrl}</code>
+                        ${networkData.explorerUrl ? ` | 浏览器: <a href="${networkData.explorerUrl}" target="_blank" class="text-decoration-none">${networkData.explorerUrl}</a>` : ''}
+                    `;
+                } else {
+                    networkInfoSpan.textContent = `${coinType} ${network}`;
+                }
+            } else {
+                networkInfoSpan.textContent = `${coinType} ${network}`;
+            }
+        }
+
+        // 显示网络配置
+        async function showNetworkConfig() {
+            try {
+                const response = await fetch('/api/network/available');
+                const result = await response.json();
+
+                if (result.success) {
+                    availableNetworks = result.data;
+                    renderNetworkConfig();
+                    const modal = new bootstrap.Modal(document.getElementById('networkConfigModal'));
+                    modal.show();
+                }
+            } catch (error) {
+                console.error('获取网络配置失败:', error);
+                showError('获取网络配置失败');
+            }
+        }
+
+        // 渲染网络配置
+        function renderNetworkConfig() {
+            const content = document.getElementById('networkConfigContent');
+            let html = '';
+
+            // BTC网络
+            html += '<h6 class="text-primary"><i class="bi bi-currency-bitcoin"></i> Bitcoin 网络</h6>';
+            html += '<div class="row">';
+            Object.entries(availableNetworks.btc || {}).forEach(([key, network]) => {
+                html += `
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">${network.displayName}</h6>
+                                <p class="card-text small">${network.description || ''}</p>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" ${network.enabled ? 'checked' : ''}
+                                           id="btc_${key}" onchange="toggleNetwork('btc', '${key}', this.checked)">
+                                    <label class="form-check-label" for="btc_${key}">启用</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+
+            // ETH网络
+            html += '<h6 class="text-primary mt-4"><i class="bi bi-currency-exchange"></i> Ethereum 网络</h6>';
+            html += '<div class="row">';
+            Object.entries(availableNetworks.eth || {}).forEach(([key, network]) => {
+                html += `
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">${network.displayName}</h6>
+                                <p class="card-text small">${network.description || ''}</p>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" ${network.enabled ? 'checked' : ''}
+                                           id="eth_${key}" onchange="toggleNetwork('eth', '${key}', this.checked)">
+                                    <label class="form-check-label" for="eth_${key}">启用</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+
+            // 自定义网络
+            if (availableNetworks.custom && Object.keys(availableNetworks.custom).length > 0) {
+                html += '<h6 class="text-primary mt-4"><i class="bi bi-gear"></i> 自定义网络</h6>';
+                html += '<div class="row">';
+                Object.entries(availableNetworks.custom).forEach(([key, network]) => {
+                    html += `
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title">${network.displayName}</h6>
+                                    <p class="card-text small">${network.description || ''}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" ${network.enabled ? 'checked' : ''}
+                                                   id="custom_${key}" onchange="toggleNetwork('custom', '${key}', this.checked)">
+                                            <label class="form-check-label" for="custom_${key}">启用</label>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="removeCustomNetwork('${key}')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            content.innerHTML = html;
+        }
+
+        // 切换网络状态
+        function toggleNetwork(type, key, enabled) {
+            console.log(`切换网络状态: ${type}.${key} = ${enabled}`);
+            // 这里可以添加保存网络状态的逻辑
+        }
+
+        // 添加自定义网络
+        function addCustomNetwork() {
+            const modal = new bootstrap.Modal(document.getElementById('customNetworkModal'));
+            modal.show();
+        }
+
+        // 保存自定义网络
+        async function saveCustomNetwork() {
+            const form = document.getElementById('customNetworkForm');
+            const formData = new FormData(form);
+
+            const networkData = {
+                name: document.getElementById('customNetworkName').value,
+                displayName: document.getElementById('customNetworkDisplayName').value,
+                coinType: document.getElementById('customNetworkCoinType').value,
+                apiUrl: document.getElementById('customNetworkApiUrl').value,
+                apiKey: document.getElementById('customNetworkApiKey').value,
+                explorerUrl: document.getElementById('customNetworkExplorerUrl').value,
+                description: document.getElementById('customNetworkDescription').value
+            };
+
+            try {
+                const response = await fetch('/api/network/custom', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(networkData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showSuccess('自定义网络添加成功');
+                    bootstrap.Modal.getInstance(document.getElementById('customNetworkModal')).hide();
+                    form.reset();
+                    // 刷新网络配置
+                    showNetworkConfig();
+                } else {
+                    showError('添加自定义网络失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('保存自定义网络失败:', error);
+                showError('保存自定义网络失败');
+            }
+        }
+
+        // 删除自定义网络
+        async function removeCustomNetwork(networkId) {
+            if (!confirm('确定要删除这个自定义网络吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/network/custom/${networkId}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showSuccess('自定义网络删除成功');
+                    showNetworkConfig(); // 刷新配置
+                } else {
+                    showError('删除自定义网络失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('删除自定义网络失败:', error);
+                showError('删除自定义网络失败');
+            }
+        }
+
+        // 页面加载时初始化网络选项
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNetworkOptions();
+        });
+    </script>
+</body>
+</html>

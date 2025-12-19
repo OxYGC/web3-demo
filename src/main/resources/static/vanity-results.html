@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>靓号生成结果 - Web3 钱包系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .result-item {
+            background: #f8f9ff;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 2px solid #e1e5e9;
+            transition: border-color 0.3s;
+        }
+
+        .result-item:hover {
+            border-color: #4facfe;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .result-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .copy-btn {
+            padding: 8px 16px;
+            background: #4facfe;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #0056b3;
+        }
+
+        .field-group {
+            display: grid;
+            gap: 15px;
+        }
+
+        .field {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .field-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .field-value {
+            font-family: 'Courier New', monospace;
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            word-break: break-all;
+            font-size: 14px;
+        }
+
+        .address-field .field-value {
+            color: #4facfe;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .private-key-field .field-value {
+            color: #dc3545;
+            background: #fff5f5;
+            border-color: #fecaca;
+        }
+
+        .warning-box {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .warning-box h3 {
+            margin-bottom: 10px;
+        }
+
+        .download-section {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .download-btn {
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #333;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .field {
+                grid-template-columns: 1fr;
+                gap: 5px;
+            }
+
+            .result-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="/vanity-generator.html" class="back-btn">← 返回生成器</a>
+
+    <div class="container">
+        <div class="header">
+            <h1>🎉 靓号生成完成</h1>
+            <p>以下是您的专属靓号地址</p>
+        </div>
+
+        <div class="content">
+            <div class="warning-box">
+                <h3>⚠️ 安全警告</h3>
+                <p>请务必安全保存您的私钥！私钥一旦丢失将无法找回，泄露给他人将导致资产损失。</p>
+            </div>
+
+            <div id="resultsContainer">
+                <div style="text-align: center; padding: 40px; color: #666;">
+                    正在加载生成结果...
+                </div>
+            </div>
+
+            <div class="download-section">
+                <button id="downloadBtn" class="download-btn" style="display: none;">
+                    📥 下载完整结果文件
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let taskData = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTaskResults();
+        });
+
+        async function loadTaskResults() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const taskId = urlParams.get('taskId');
+
+            if (!taskId) {
+                document.getElementById('resultsContainer').innerHTML = 
+                    '<div style="text-align: center; padding: 40px; color: #666;">未指定任务ID</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/vanity/task-status/${taskId}`);
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    taskData = result.data;
+                    renderResults(result.data.results);
+                } else {
+                    document.getElementById('resultsContainer').innerHTML = 
+                        '<div style="text-align: center; padding: 40px; color: #666;">加载任务结果失败</div>';
+                }
+            } catch (error) {
+                console.error('加载结果失败:', error);
+                document.getElementById('resultsContainer').innerHTML = 
+                    '<div style="text-align: center; padding: 40px; color: #666;">加载失败: ' + error.message + '</div>';
+            }
+        }
+
+        function renderResults(results) {
+            const container = document.getElementById('resultsContainer');
+
+            if (!results || results.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;">暂无生成结果</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+
+            results.forEach((result, index) => {
+                const resultItem = createResultItem(result, index + 1);
+                container.appendChild(resultItem);
+            });
+
+            document.getElementById('downloadBtn').style.display = 'inline-block';
+            document.getElementById('downloadBtn').addEventListener('click', downloadResults);
+        }
+
+        function createResultItem(result, index) {
+            const resultItem = document.createElement('div');
+            resultItem.className = 'result-item';
+
+            resultItem.innerHTML = `
+                <div class="result-header">
+                    <div class="result-title">🎯 靓号地址 #${index}</div>
+                    <button class="copy-btn" onclick="copyAllData(${index})">📋 复制全部</button>
+                </div>
+
+                <div class="field-group">
+                    <div class="field address-field">
+                        <div class="field-label">地址:</div>
+                        <div class="field-value" onclick="copyText('${result.address}')">${result.address}</div>
+                    </div>
+
+                    <div class="field private-key-field">
+                        <div class="field-label">私钥:</div>
+                        <div class="field-value" onclick="copyText('${result.privateKey}')">${result.privateKey}</div>
+                    </div>
+
+                    <div class="field">
+                        <div class="field-label">公钥:</div>
+                        <div class="field-value" onclick="copyText('${result.publicKey}')">${result.publicKey}</div>
+                    </div>
+
+                    <div class="field">
+                        <div class="field-label">币种:</div>
+                        <div class="field-value">${result.coinType}</div>
+                    </div>
+
+                    <div class="field">
+                        <div class="field-label">匹配模式:</div>
+                        <div class="field-value">${result.pattern}</div>
+                    </div>
+                </div>
+            `;
+
+            return resultItem;
+        }
+
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('已复制到剪贴板');
+            }).catch(err => {
+                console.error('复制失败:', err);
+                showToast('复制失败');
+            });
+        }
+
+        function copyAllData(index) {
+            const result = taskData.results[index - 1];
+            const text = `🎯 靓号地址 #${index}
+地址: ${result.address}
+私钥: ${result.privateKey}
+公钥: ${result.publicKey}
+币种: ${result.coinType}
+匹配模式: ${result.pattern}
+
+⚠️ 请安全保管您的私钥！`;
+
+            copyText(text);
+        }
+
+        async function downloadResults() {
+            if (!taskData || !taskData.results) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/vanity/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(taskData.results)
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `vanity_addresses_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    showToast('文件下载成功');
+                } else {
+                    showToast('下载失败');
+                }
+            } catch (error) {
+                console.error('下载失败:', error);
+                showToast('下载失败: ' + error.message);
+            }
+        }
+
+        function showToast(message) {
+            // 创建一个简单的提示框
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #333;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 6px;
+                z-index: 10000;
+                font-size: 14px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            `;
+            toast.textContent = message;
+
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

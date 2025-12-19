@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>余额查询功能测试</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .test-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 800px;
+        }
+        .test-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #007bff;
+        }
+        .btn-test {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .btn-test:hover {
+            background: linear-gradient(135deg, #0056b3, #004085);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+        .result-area {
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            min-height: 100px;
+        }
+        .status-success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .status-error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .status-loading {
+            color: #17a2b8;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="test-container">
+            <h1 class="text-center mb-4">
+                <i class="bi bi-currency-dollar"></i> 
+                余额查询功能测试
+            </h1>
+            
+            <!-- API状态检查 -->
+            <div class="test-section">
+                <h4><i class="bi bi-server"></i> API状态检查</h4>
+                <p>检查后端API服务是否正常运行</p>
+                <button class="btn btn-test" onclick="checkApiStatus()">
+                    <i class="bi bi-play-circle"></i> 检查API状态
+                </button>
+                <div id="apiStatusResult" class="result-area"></div>
+            </div>
+
+            <!-- BTC余额查询测试 -->
+            <div class="test-section">
+                <h4><i class="bi bi-currency-bitcoin"></i> BTC余额查询测试</h4>
+                <p>测试比特币地址余额查询功能</p>
+                <div class="input-group mb-3">
+                    <span class="input-group-text"><i class="bi bi-wallet2"></i></span>
+                    <input type="text" class="form-control" id="btcAddress" 
+                           value="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa" 
+                           placeholder="输入BTC地址">
+                </div>
+                <button class="btn btn-test" onclick="testBtcBalance()">
+                    <i class="bi bi-search"></i> 查询BTC余额
+                </button>
+                <div id="btcResult" class="result-area"></div>
+            </div>
+
+            <!-- ETH余额查询测试 -->
+            <div class="test-section">
+                <h4><i class="bi bi-currency-exchange"></i> ETH余额查询测试</h4>
+                <p>测试以太坊地址余额查询功能</p>
+                <div class="input-group mb-3">
+                    <span class="input-group-text"><i class="bi bi-wallet2"></i></span>
+                    <input type="text" class="form-control" id="ethAddress" 
+                           value="0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" 
+                           placeholder="输入ETH地址">
+                </div>
+                <button class="btn btn-test" onclick="testEthBalance()">
+                    <i class="bi bi-search"></i> 查询ETH余额
+                </button>
+                <div id="ethResult" class="result-area"></div>
+            </div>
+
+            <!-- 批量查询测试 -->
+            <div class="test-section">
+                <h4><i class="bi bi-list-check"></i> 批量查询测试</h4>
+                <p>测试批量地址余额查询功能</p>
+                <button class="btn btn-test" onclick="testBatchQuery()">
+                    <i class="bi bi-collection"></i> 批量查询测试
+                </button>
+                <div id="batchResult" class="result-area"></div>
+            </div>
+
+            <!-- 测试结果汇总 -->
+            <div class="test-section">
+                <h4><i class="bi bi-clipboard-check"></i> 测试结果汇总</h4>
+                <div id="summaryResult" class="result-area">
+                    <p class="text-muted">点击上方测试按钮开始测试...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let testResults = {
+            apiStatus: null,
+            btcBalance: null,
+            ethBalance: null,
+            batchQuery: null
+        };
+
+        // 检查API状态
+        async function checkApiStatus() {
+            const resultDiv = document.getElementById('apiStatusResult');
+            resultDiv.innerHTML = '<div class="status-loading"><i class="bi bi-hourglass-split"></i> 检查中...</div>';
+            
+            try {
+                const response = await fetch('/api/test/ping');
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <div class="status-success">
+                            <i class="bi bi-check-circle"></i> API服务正常
+                            <br><small>响应: ${result.data}</small>
+                        </div>
+                    `;
+                    testResults.apiStatus = true;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="status-error">
+                            <i class="bi bi-x-circle"></i> API服务异常
+                            <br><small>错误: ${result.message}</small>
+                        </div>
+                    `;
+                    testResults.apiStatus = false;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status-error">
+                        <i class="bi bi-wifi-off"></i> 连接失败
+                        <br><small>错误: ${error.message}</small>
+                    </div>
+                `;
+                testResults.apiStatus = false;
+            }
+            updateSummary();
+        }
+
+        // 测试BTC余额查询
+        async function testBtcBalance() {
+            const address = document.getElementById('btcAddress').value.trim();
+            const resultDiv = document.getElementById('btcResult');
+            
+            if (!address) {
+                resultDiv.innerHTML = '<div class="status-error"><i class="bi bi-exclamation-triangle"></i> 请输入BTC地址</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="status-loading"><i class="bi bi-hourglass-split"></i> 查询中...</div>';
+            
+            try {
+                const response = await fetch('/api/balance/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        address: address,
+                        coinType: 'BTC',
+                        network: 'mainnet'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && result.data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="status-success">
+                            <i class="bi bi-check-circle"></i> BTC余额查询成功
+                            <br><strong>地址:</strong> ${result.data.address}
+                            <br><strong>余额:</strong> ${result.data.balanceFormatted}
+                            <br><small>查询时间: ${new Date(result.data.timestamp).toLocaleString()}</small>
+                        </div>
+                    `;
+                    testResults.btcBalance = true;
+                } else {
+                    const errorMsg = result.data?.errorMessage || result.message || '查询失败';
+                    resultDiv.innerHTML = `
+                        <div class="status-error">
+                            <i class="bi bi-x-circle"></i> BTC余额查询失败
+                            <br><small>错误: ${errorMsg}</small>
+                        </div>
+                    `;
+                    testResults.btcBalance = false;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status-error">
+                        <i class="bi bi-wifi-off"></i> 网络错误
+                        <br><small>错误: ${error.message}</small>
+                    </div>
+                `;
+                testResults.btcBalance = false;
+            }
+            updateSummary();
+        }
+
+        // 测试ETH余额查询
+        async function testEthBalance() {
+            const address = document.getElementById('ethAddress').value.trim();
+            const resultDiv = document.getElementById('ethResult');
+            
+            if (!address) {
+                resultDiv.innerHTML = '<div class="status-error"><i class="bi bi-exclamation-triangle"></i> 请输入ETH地址</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="status-loading"><i class="bi bi-hourglass-split"></i> 查询中...</div>';
+            
+            try {
+                const response = await fetch('/api/balance/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        address: address,
+                        coinType: 'ETH',
+                        network: 'mainnet'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && result.data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="status-success">
+                            <i class="bi bi-check-circle"></i> ETH余额查询成功
+                            <br><strong>地址:</strong> ${result.data.address}
+                            <br><strong>余额:</strong> ${result.data.balanceFormatted}
+                            <br><small>查询时间: ${new Date(result.data.timestamp).toLocaleString()}</small>
+                        </div>
+                    `;
+                    testResults.ethBalance = true;
+                } else {
+                    const errorMsg = result.data?.errorMessage || result.message || '查询失败';
+                    resultDiv.innerHTML = `
+                        <div class="status-error">
+                            <i class="bi bi-x-circle"></i> ETH余额查询失败
+                            <br><small>错误: ${errorMsg}</small>
+                        </div>
+                    `;
+                    testResults.ethBalance = false;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status-error">
+                        <i class="bi bi-wifi-off"></i> 网络错误
+                        <br><small>错误: ${error.message}</small>
+                    </div>
+                `;
+                testResults.ethBalance = false;
+            }
+            updateSummary();
+        }
+
+        // 测试批量查询
+        async function testBatchQuery() {
+            const resultDiv = document.getElementById('batchResult');
+            resultDiv.innerHTML = '<div class="status-loading"><i class="bi bi-hourglass-split"></i> 批量查询中...</div>';
+            
+            const requests = [
+                { address: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', coinType: 'BTC', network: 'mainnet' },
+                { address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', coinType: 'ETH', network: 'mainnet' }
+            ];
+            
+            try {
+                const response = await fetch('/api/balance/batch-query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ requests: requests })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    let html = '<div class="status-success"><i class="bi bi-check-circle"></i> 批量查询成功</div>';
+                    result.data.forEach((item, index) => {
+                        html += `
+                            <div class="mt-2 p-2 border rounded">
+                                <strong>${item.coinType}:</strong> ${item.balanceFormatted}
+                                <br><small>${item.address}</small>
+                            </div>
+                        `;
+                    });
+                    resultDiv.innerHTML = html;
+                    testResults.batchQuery = true;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="status-error">
+                            <i class="bi bi-x-circle"></i> 批量查询失败
+                            <br><small>错误: ${result.message}</small>
+                        </div>
+                    `;
+                    testResults.batchQuery = false;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status-error">
+                        <i class="bi bi-wifi-off"></i> 网络错误
+                        <br><small>错误: ${error.message}</small>
+                    </div>
+                `;
+                testResults.batchQuery = false;
+            }
+            updateSummary();
+        }
+
+        // 更新测试结果汇总
+        function updateSummary() {
+            const summaryDiv = document.getElementById('summaryResult');
+            const total = Object.keys(testResults).length;
+            const completed = Object.values(testResults).filter(v => v !== null).length;
+            const passed = Object.values(testResults).filter(v => v === true).length;
+            const failed = Object.values(testResults).filter(v => v === false).length;
+            
+            let html = `
+                <h6>测试进度: ${completed}/${total}</h6>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-success">
+                            <i class="bi bi-check-circle"></i> 通过: ${passed}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-danger">
+                            <i class="bi bi-x-circle"></i> 失败: ${failed}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-muted">
+                            <i class="bi bi-clock"></i> 待测: ${total - completed}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            if (completed === total) {
+                if (passed === total) {
+                    html += '<div class="alert alert-success mt-3"><i class="bi bi-trophy"></i> 所有测试通过！余额查询功能正常工作。</div>';
+                } else {
+                    html += '<div class="alert alert-warning mt-3"><i class="bi bi-exclamation-triangle"></i> 部分测试失败，请检查相关功能。</div>';
+                }
+            }
+            
+            summaryDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
