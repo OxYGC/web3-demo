@@ -1,4 +1,4 @@
-package com.web3.util.ecdsa;
+package com.web3.demo;
 
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.ec.CustomNamedCurves;
@@ -30,6 +30,7 @@ public final class KeyUtil {
     public static BigInteger generatePrivateKey() {
         BigInteger d;
         do {
+            //完整的私钥
             d = new BigInteger(CURVE_N.bitLength(), RANDOM);
         } while (d.signum() <= 0 || d.compareTo(CURVE_N) >= 0);
         return d;

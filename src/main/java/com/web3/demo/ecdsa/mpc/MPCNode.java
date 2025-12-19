@@ -1,4 +1,4 @@
-package com.web3.demo.mpc;
+package com.web3.demo.ecdsa.mpc;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -27,6 +27,7 @@ public class MPCNode {
     private final ECPoint Pi;
 
     public MPCNode() {
+        //私钥分片ri: mod(CURVE.getN()) 保证它在曲线阶范围 [0, n-1]
         this.ri = new BigInteger(256, RANDOM).mod(CURVE.getN());
         this.Pi = CURVE.getG().multiply(ri).normalize();
     }

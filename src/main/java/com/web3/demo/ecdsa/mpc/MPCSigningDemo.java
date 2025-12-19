@@ -1,4 +1,4 @@
-package com.web3.demo.mpc;
+package com.web3.demo.ecdsa.mpc;
 
 import org.bouncycastle.math.ec.ECPoint;
 
@@ -8,12 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * 签名验签
  * MPC签名Demo
  * x: 私钥
  * k:签名的随机数(k每次签名都不同，保证签名唯一)
  * R = k*G (生成签名的点,决定r值，r = R.x mod n)
- * 
- *
  */
 public class MPCSigningDemo {
 

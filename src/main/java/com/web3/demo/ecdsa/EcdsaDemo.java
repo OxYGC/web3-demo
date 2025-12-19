@@ -1,14 +1,21 @@
-package com.web3.demo;
+package com.web3.demo.ecdsa;
 
-import com.web3.util.ecdsa.ECDSASign;
 import com.web3.util.ecdsa.ECDSAVerify;
 import com.web3.util.ecdsa.HashUtil;
-import com.web3.util.ecdsa.KeyUtil;
+import com.web3.demo.KeyUtil;
 import org.bouncycastle.math.ec.ECPoint;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * R ≡ k × G --> r = x(R) mod n
+ * => r 是由签名随机数 k 与生成元 G 相乘得到的椭圆曲线点 R 的 x 坐标，对曲线阶 n 取模后的结果。(n和G都是曲线的标准常量)
+ *
+ * s ≡ k⁻¹ · (hash + r · d) mod n (取得r之后，r乘以私钥然后和message的Hash加法运算除以随机数k然后对n进行取模，所以输入要素就是：待签名的messageHash,私钥)
+ *      其中 r =  x(R) mod n 所以： s ≡ k⁻¹ · (hash + (x(R) mod n) · d) mod n
+ * => s是在随机值r的基础上，加入了变量私钥d和签名内容hash (私钥 d（身份绑定）,消息哈希 hash（内容绑定）)
+ */
 public class EcdsaDemo {
 
     public static void main(String[] args) {
@@ -32,7 +39,6 @@ public class EcdsaDemo {
         final String rHex = r.toString(16);
         final String sHex = s.toString(16);
         System.out.printf("r: %s s: %s%n", rHex, sHex);
-
 
         // 4. 验证
         boolean ok = ECDSAVerify.verify(hash, r, s, pubKey);

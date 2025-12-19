@@ -1,4 +1,4 @@
-package com.web3.util.ecdsa;
+package com.web3.demo.ecdsa;
 
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.digests.SHA256Digest;
@@ -65,15 +65,12 @@ public final class ECDSASign {
 //        signerError.init(true, new ParametersWithRandom(new ECPrivateKeyParameters(privateKey, DOMAIN), new SecureRandom())
 //        );
 
-        signer.init(
-                true,
-                new ECPrivateKeyParameters(privateKey, DOMAIN)
-        );
+        signer.init(true, new ECPrivateKeyParameters(privateKey, DOMAIN));
 
         BigInteger[] sig = signer.generateSignature(hash);
 
         /**
-         * r 来自 k·G 的 x 坐标(固定)
+         * r 来自 k·G 的 x 坐标(固定)对曲线阶取模的结果
          * s ≡ k⁻¹ (hash + r·d) (mod n)： 由于模运算的天然对称性，所以s会有两个值
          * 就像：+5 ≡ -5 (mod 10) 注意: 这里跟几何Y轴没有关系，很多同学会搞混这里
          */

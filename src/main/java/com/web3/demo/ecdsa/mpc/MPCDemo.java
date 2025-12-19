@@ -1,4 +1,4 @@
-package com.web3.demo.mpc;
+package com.web3.demo.ecdsa.mpc;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import org.bouncycastle.math.ec.ECPoint;
 
 /**
+ * 公私钥生成以及分片相关
  * 这里模拟了:
  * 节点的私钥ri以及
  * 公钥 pk = r1×G + r2×G + r3×G

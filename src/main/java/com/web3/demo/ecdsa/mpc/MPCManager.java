@@ -1,4 +1,4 @@
-package com.web3.demo.mpc;
+package com.web3.demo.ecdsa.mpc;
 
 import java.util.List;
 import org.bouncycastle.math.ec.ECPoint;
